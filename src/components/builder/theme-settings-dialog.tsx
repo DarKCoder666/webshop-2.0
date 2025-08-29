@@ -14,6 +14,8 @@ import { themePresets } from '@/lib/theme-presets';
 import { SiteConfig, ThemePreset } from '@/lib/builder-types';
 import { cn } from '@/lib/utils';
 import { Palette, Check, Sun, Moon, Settings } from 'lucide-react';
+import { useCurrentThemePreset, useGlobalThemeStore } from '@/lib/stores/global-theme-store';
+import { useI18n } from '@/lib/i18n';
 
 type ThemeSettingsDialogProps = {
   config: SiteConfig;
@@ -22,9 +24,15 @@ type ThemeSettingsDialogProps = {
 };
 
 export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange }: ThemeSettingsDialogProps) {
-  const currentPreset = config.theme?.preset || 'default';
-  const supportsDarkMode = config.theme?.supportsDarkMode ?? true;
-  const defaultMode = config.theme?.defaultMode || 'light';
+  // Use global theme store for current theme info
+  const globalCurrentPreset = useCurrentThemePreset();
+  const { getSupportsDarkMode, getDefaultMode } = useGlobalThemeStore();
+  const t = useI18n();
+  
+  // Fallback to config if global store is not yet loaded
+  const currentPreset = globalCurrentPreset || config.theme?.preset || 'default';
+  const supportsDarkMode = getSupportsDarkMode() ?? config.theme?.supportsDarkMode ?? true;
+  const defaultMode = getDefaultMode() || config.theme?.defaultMode || 'light';
 
   return (
     <MorphingDialog>
@@ -36,18 +44,18 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
         <MorphingDialogContent className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl border border-border max-h-[85vh] flex flex-col">
           <div className="space-y-4 flex-shrink-0">
             <MorphingDialogTitle className="text-lg font-semibold text-card-foreground">
-              Theme Settings
+              {t('theme_settings_title')}
             </MorphingDialogTitle>
             
             <MorphingDialogDescription className="text-sm text-muted-foreground">
-              Choose a color palette and configure dark mode support
+              {t('theme_settings_description')}
             </MorphingDialogDescription>
 
             {/* Dark Mode Support Controls */}
             <div className="space-y-3 p-4 rounded-lg border border-border bg-muted/30">
               <div className="flex items-center gap-2">
                 <Settings className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-card-foreground">Dark Mode Support</span>
+                <span className="text-sm font-medium text-card-foreground">{t('dark_mode_support')}</span>
               </div>
               
               <div className="space-y-3">
@@ -59,13 +67,13 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                     onChange={(e) => onThemeConfigChange({ supportsDarkMode: e.target.checked })}
                     className="rounded border-border text-primary focus:ring-primary"
                   />
-                  <span className="text-sm text-card-foreground">Enable dark/light mode switching for visitors</span>
+                  <span className="text-sm text-card-foreground">{t('enable_dark_light_switching')}</span>
                 </label>
 
                 {/* Default Mode Selection (when dark mode is disabled) */}
                 {!supportsDarkMode && (
                   <div className="ml-6 space-y-2">
-                    <span className="text-xs text-muted-foreground">Site will use:</span>
+                    <span className="text-xs text-muted-foreground">{t('site_will_use')}</span>
                     <div className="flex gap-2">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -77,7 +85,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                           className="text-primary focus:ring-primary"
                         />
                         <Sun className="h-3 w-3" />
-                        <span className="text-xs">Light mode only</span>
+                        <span className="text-xs">{t('light_mode_only')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -89,7 +97,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                           className="text-primary focus:ring-primary"
                         />
                         <Moon className="h-3 w-3" />
-                        <span className="text-xs">Dark mode only</span>
+                        <span className="text-xs">{t('dark_mode_only')}</span>
                       </label>
                     </div>
                   </div>
@@ -129,7 +137,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-medium text-muted-foreground">
-                                {supportsDarkMode ? 'Light Mode' : 'Theme Preview'}
+                                {supportsDarkMode ? t('light_mode') : t('theme_preview')}
                               </span>
                               <Sun className="h-3 w-3 text-muted-foreground" />
                             </div>
@@ -140,7 +148,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                                 className="h-6 w-16 rounded-md border border-border shadow-sm"
                                 style={{ backgroundColor: preset.colors.primary }}
                               />
-                              <span className="text-xs text-muted-foreground">Primary</span>
+                              <span className="text-xs text-muted-foreground">{t('color_primary')}</span>
                             </div>
                             
                             {/* Secondary colors grid */}
@@ -150,28 +158,28 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                                   className="h-4 w-full rounded border border-border"
                                   style={{ backgroundColor: preset.colors.accent }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">Accent</span>
+                                <span className="text-[10px] text-muted-foreground">{t('color_accent')}</span>
                               </div>
                               <div className="space-y-1">
                                 <div 
                                   className="h-4 w-full rounded border border-border"
                                   style={{ backgroundColor: preset.colors.secondary }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">Secondary</span>
+                                <span className="text-[10px] text-muted-foreground">{t('color_secondary')}</span>
                               </div>
                               <div className="space-y-1">
                                 <div 
                                   className="h-4 w-full rounded border border-border"
                                   style={{ backgroundColor: preset.colors.muted }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">Muted</span>
+                                <span className="text-[10px] text-muted-foreground">{t('color_muted')}</span>
                               </div>
                               <div className="space-y-1">
                                 <div 
                                   className="h-4 w-full rounded border border-border"
                                   style={{ backgroundColor: preset.colors.background }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">Background</span>
+                                <span className="text-[10px] text-muted-foreground">{t('color_background')}</span>
                               </div>
                             </div>
                           </div>
@@ -182,7 +190,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                           <div className={cn("space-y-2", supportsDarkMode && "pt-2 border-t border-border/50")}>
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-medium text-muted-foreground">
-                                {supportsDarkMode ? 'Dark Mode' : 'Theme Preview'}
+                                {supportsDarkMode ? t('dark_mode') : t('theme_preview')}
                               </span>
                               <Moon className="h-3 w-3 text-muted-foreground" />
                             </div>
@@ -193,7 +201,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                                 className="h-6 w-16 rounded-md border border-border shadow-sm"
                                 style={{ backgroundColor: preset.darkColors.primary }}
                               />
-                              <span className="text-xs text-muted-foreground">Primary</span>
+                              <span className="text-xs text-muted-foreground">{t('color_primary')}</span>
                             </div>
                             
                             {/* Secondary colors grid */}
@@ -203,28 +211,28 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                                   className="h-4 w-full rounded border border-border"
                                   style={{ backgroundColor: preset.darkColors.accent }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">Accent</span>
+                                <span className="text-[10px] text-muted-foreground">{t('color_accent')}</span>
                               </div>
                               <div className="space-y-1">
                                 <div 
                                   className="h-4 w-full rounded border border-border"
                                   style={{ backgroundColor: preset.darkColors.secondary }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">Secondary</span>
+                                <span className="text-[10px] text-muted-foreground">{t('color_secondary')}</span>
                               </div>
                               <div className="space-y-1">
                                 <div 
                                   className="h-4 w-full rounded border border-border"
                                   style={{ backgroundColor: preset.darkColors.muted }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">Muted</span>
+                                <span className="text-[10px] text-muted-foreground">{t('color_muted')}</span>
                               </div>
                               <div className="space-y-1">
                                 <div 
                                   className="h-4 w-full rounded border border-border"
                                   style={{ backgroundColor: preset.darkColors.background }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">Background</span>
+                                <span className="text-[10px] text-muted-foreground">{t('color_background')}</span>
                               </div>
                             </div>
                           </div>
@@ -238,7 +246,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
           </div>
           
           <div className="pt-4 text-xs text-muted-foreground flex-shrink-0 border-t border-border/50 mt-4">
-            Changes will be applied instantly and saved automatically.
+            {t('changes_applied_saved')}
           </div>
           
           <MorphingDialogClose />

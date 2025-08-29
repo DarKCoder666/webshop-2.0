@@ -1,8 +1,15 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { getCurrentLanguage, LanguageCode } from '@/lib/stores/language-store';
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
+import { RichText } from "@/lib/builder-types";
+import { useI18n } from "@/lib/i18n";
+// Type guard to avoid any-casts when reading multilingual content
+function isRichTextLike(value: unknown): value is RichText {
+  return typeof value === 'object' && value !== null && !React.isValidElement(value);
+}
 
 type TextStyle = {
   fontSize?: string;
@@ -17,7 +24,13 @@ type EditableTextProps = {
   as?: React.ElementType;
   blockId: string;
   fieldKey: string;
-  onSave: (blockId: string, fieldKey: string, value: string, style?: TextStyle) => void;
+  onSave: (
+    blockId: string,
+    fieldKey: string,
+    value: string,
+    style?: TextStyle,
+    options?: { perLanguage?: boolean; activeLanguage?: LanguageCode; multilingualContent?: Record<LanguageCode, string> }
+  ) => void;
   isBuilder?: boolean;
   style?: TextStyle;
   placeholder?: string;
@@ -70,12 +83,16 @@ export function EditableText({
   onSave,
   isBuilder = false,
   style = {},
-  placeholder = "Click to edit text...",
+  placeholder,
 }: EditableTextProps) {
+  const t = useI18n();
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(String(children || ""));
   const [textStyle, setTextStyle] = useState<TextStyle>(style || {});
   const [showToolbar, setShowToolbar] = useState(false);
+  const [isMultilingual, setIsMultilingual] = useState(false);
+  const [activeLanguage, setActiveLanguage] = useState<LanguageCode>('ru');
+  const [multilingualContent, setMultilingualContent] = useState<Record<LanguageCode, string>>({ ru: '', en: '', uz: '' });
   const textRef = useRef<HTMLElement>(null); // for non-editing container
   const editRef = useRef<HTMLTextAreaElement>(null); // for editing textarea
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -92,8 +109,43 @@ export function EditableText({
 
   // Initialize state from props on mount only
   useEffect(() => {
-    setText(String(children || ""));
+    const initialText = String(children || "");
+    setText(initialText);
     setTextStyle(style || {});
+    
+    // Initialize multilingual content from existing data
+    if (isRichTextLike(children)) {
+      const richText = children;
+      const content: Record<LanguageCode, string> = {
+        ru: richText.ru || richText.text || '',
+        en: richText.en || richText.text || '',
+        uz: richText.uz || richText.text || '',
+      };
+      setMultilingualContent(content);
+      
+      // Check if this is already multilingual content
+      const hasMultilingualData = Boolean(richText.ru || richText.en || richText.uz);
+      if (hasMultilingualData) {
+        setIsMultilingual(true);
+        // Set active language to one that has content, or current language
+        const currentLang = getCurrentLanguage();
+        if (content[currentLang]) {
+          setActiveLanguage(currentLang);
+          setText(content[currentLang]);
+        } else {
+          // Find first language with content
+          const langWithContent = (['ru', 'en', 'uz'] as LanguageCode[]).find(lang => content[lang]);
+          if (langWithContent) {
+            setActiveLanguage(langWithContent);
+            setText(content[langWithContent]);
+          }
+        }
+      }
+    } else {
+      // Initialize all languages with the single text value
+      setMultilingualContent({ ru: initialText, en: initialText, uz: initialText });
+    }
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 
@@ -109,6 +161,16 @@ export function EditableText({
     }
   }, [isEditing]);
 
+  const handleSave = useCallback(() => {
+    if (isMultilingual) {
+      const updatedContent = { ...multilingualContent, [activeLanguage]: text };
+      setMultilingualContent(updatedContent);
+      onSave(blockId, fieldKey, text, textStyle, { perLanguage: true, activeLanguage, multilingualContent: updatedContent });
+    } else {
+      onSave(blockId, fieldKey, text, textStyle, { perLanguage: false });
+    }
+  }, [isMultilingual, multilingualContent, activeLanguage, text, textStyle, blockId, fieldKey, onSave]);
+
   // Handle click outside to close editing
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -123,7 +185,7 @@ export function EditableText({
           clearTimeout(debounceTimeoutRef.current);
         }
         // Immediate save on blur
-        onSave(blockId, fieldKey, text, textStyle);
+        handleSave();
         setIsEditing(false);
         setShowToolbar(false);
       }
@@ -133,7 +195,7 @@ export function EditableText({
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isEditing, blockId, fieldKey, onSave, text, textStyle, children, style]);
+  }, [isEditing, handleSave]);
 
   // Cleanup debounce timeout on unmount
   useEffect(() => {
@@ -168,7 +230,13 @@ export function EditableText({
     }
     
     debounceTimeoutRef.current = setTimeout(() => {
-      onSave(blockId, fieldKey, newText, textStyle);
+      if (isMultilingual) {
+        const updatedContent = { ...multilingualContent, [activeLanguage]: newText };
+        setMultilingualContent(updatedContent);
+        onSave(blockId, fieldKey, newText, textStyle, { perLanguage: true, activeLanguage, multilingualContent: updatedContent });
+      } else {
+        onSave(blockId, fieldKey, newText, textStyle, { perLanguage: false });
+      }
     }, 300);
   };
 
@@ -180,7 +248,7 @@ export function EditableText({
         clearTimeout(debounceTimeoutRef.current);
       }
       // Immediate save on Enter
-      onSave(blockId, fieldKey, text, textStyle);
+      handleSave();
       setIsEditing(false);
       setShowToolbar(false);
     }
@@ -197,6 +265,31 @@ export function EditableText({
 
   const updateStyle = (newStyle: Partial<TextStyle>) => {
     setTextStyle(prev => ({ ...prev, ...newStyle }));
+  };
+
+  // moved handleSave above
+
+  const handleLanguageSwitch = (lang: LanguageCode) => {
+    // Save current language content before switching
+    const updatedContent = { ...multilingualContent, [activeLanguage]: text };
+    setMultilingualContent(updatedContent);
+    
+    // Switch to new language
+    setActiveLanguage(lang);
+    setText(updatedContent[lang] || '');
+  };
+
+  const toggleMultilingual = () => {
+    if (!isMultilingual) {
+      // Switching to multilingual: initialize all languages with current text
+      const content = { ru: text, en: text, uz: text };
+      setMultilingualContent(content);
+      setActiveLanguage(getCurrentLanguage());
+    } else {
+      // Switching to single language: use current active language content
+      setText(multilingualContent[activeLanguage] || text);
+    }
+    setIsMultilingual(!isMultilingual);
   };
 
   const toggleBold = () => {
@@ -262,7 +355,7 @@ export function EditableText({
             boxSizing: 'border-box',
           }}
           rows={1}
-          placeholder={placeholder}
+          placeholder={placeholder || t('edit_text_placeholder')}
         />
       )}
 
@@ -277,6 +370,44 @@ export function EditableText({
             className="absolute top-0 left-0 z-50 flex items-center gap-2 rounded-lg border border-border bg-card p-2 shadow-lg"
             style={{ height: TOOLBAR_HEIGHT_PX }}
           >
+            {/* Multilingual toggle */}
+            <label className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-border bg-background text-foreground">
+              <input
+                type="checkbox"
+                checked={isMultilingual}
+                onChange={toggleMultilingual}
+              />
+              <span>{t('multilingual')}</span>
+            </label>
+
+            {/* Language tabs */}
+            {isMultilingual && (
+              <div className="flex items-center gap-1 px-2 py-1 rounded border border-border bg-background">
+                {(['ru', 'en', 'uz'] as LanguageCode[]).map((lang) => {
+                  const hasContent = Boolean(multilingualContent[lang]);
+                  const isActive = activeLanguage === lang;
+                  return (
+                    <button
+                      key={lang}
+                      onClick={() => handleLanguageSwitch(lang)}
+                      className={cn(
+                        "flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium transition-colors",
+                        isActive 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted text-muted-foreground"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        hasContent ? "bg-green-500" : "bg-gray-300"
+                      )} />
+                      {lang.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Font Size */}
             <select
               value={textStyle.fontSize || ""}
@@ -286,7 +417,7 @@ export function EditableText({
                 textStyle.fontSize && "bg-primary/10 border-primary"
               )}
             >
-              <option value="">Default</option>
+              <option value="">{t('default_option')}</option>
               {FONT_SIZES.map((size) => (
                 <option key={size.value} value={size.value}>
                   {size.label}
@@ -318,7 +449,7 @@ export function EditableText({
             >
               {FONT_FAMILIES.map((font) => (
                 <option key={font.value} value={font.value}>
-                  {font.label}
+                  {font.value === 'inherit' ? t('default_option') : font.label}
                 </option>
               ))}
             </select>
@@ -330,7 +461,7 @@ export function EditableText({
                 value={textStyle.color || "#000000"}
                 onChange={(e) => updateStyle({ color: e.target.value })}
                 className="w-6 h-6 rounded border border-border cursor-pointer"
-                title="Text Color"
+                title={t('text_color')}
               />
               <select
                 value={textStyle.color || ""}
@@ -340,16 +471,31 @@ export function EditableText({
                   textStyle.color && "bg-primary/10 border-primary"
                 )}
               >
-                {PRESET_COLORS.map((color) => (
-                  <option key={color.value} value={color.value}>
-                    {color.label}
-                  </option>
-                ))}
+                {PRESET_COLORS.map((color) => {
+                  const label =
+                    color.value === '' ? t('default_option') :
+                    color.value === '#000000' ? t('color_black') :
+                    color.value === '#ffffff' ? t('color_white') :
+                    color.value === '#6b7280' ? t('color_gray') :
+                    color.value === '#ef4444' ? t('color_red') :
+                    color.value === '#f97316' ? t('color_orange') :
+                    color.value === '#eab308' ? t('color_yellow') :
+                    color.value === '#22c55e' ? t('color_green') :
+                    color.value === '#3b82f6' ? t('color_blue') :
+                    color.value === '#6366f1' ? t('color_indigo') :
+                    color.value === '#a855f7' ? t('color_purple') :
+                    color.value === '#ec4899' ? t('color_pink') :
+                    color.label;
+                  return (
+                    <option key={color.value} value={color.value}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
-            {/* Helper */}
-            <div className="ml-2 text-xs text-muted-foreground">Enter to apply • Esc to cancel</div>
+
           </motion.div>
         )}
       </AnimatePresence>

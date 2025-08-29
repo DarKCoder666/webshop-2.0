@@ -1,4 +1,4 @@
-export type BlockType = 'heroSection' | 'hero37' | 'hero210' | 'hero85' | 'navigation' | 'testimonials' | 'testimonials2' | 'testimonials3' | 'productsList';
+export type BlockType = 'heroSection' | 'hero37' | 'hero210' | 'hero85' | 'navigation' | 'testimonials' | 'testimonials2' | 'testimonials3' | 'productsList' | 'productGallery' | 'productDetails' | 'productOverview' | 'footerMinimal' | 'footerColumns' | 'footerHalfscreen';
 
 export type BlockInstance<TProps = Record<string, unknown>> = {
   id: string;
@@ -53,6 +53,7 @@ export type SEOSettings = {
 export type SiteConfig = {
   id: string;
   name: string;
+  route?: string; // Page route for general pages
   blocks: BlockInstance[];
   theme?: {
     preset: ThemePreset;
@@ -91,8 +92,29 @@ export type TextStyle = {
 };
 
 export type RichText = {
-  text: string;
+  // Legacy single-language text
+  text?: string;
+  // Per-language fields
+  ru?: string;
+  en?: string;
+  uz?: string;
   style?: TextStyle;
+};
+
+export type ButtonStyle = {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+} & TextStyle;
+
+export type RichButton = {
+  // Legacy single-language text
+  text?: string;
+  // Per-language fields
+  ru?: string;
+  en?: string;
+  uz?: string;
+  style?: ButtonStyle;
+  href?: string;
 };
 
 

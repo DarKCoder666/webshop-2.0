@@ -1,4 +1,5 @@
 import { RichText, TextStyle } from "./builder-types";
+import { getCurrentLanguage } from '@/lib/stores/language-store';
 
 /**
  * Utility functions for working with rich text content
@@ -7,7 +8,9 @@ import { RichText, TextStyle } from "./builder-types";
 export function getRichTextContent(content: string | RichText | undefined): string {
   if (!content) return "";
   if (typeof content === "string") return content;
-  return content.text || "";
+  const lang = getCurrentLanguage();
+  const perLang = (content as any)[lang] as string | undefined;
+  return perLang || content.text || "";
 }
 
 export function getRichTextStyle(content: string | RichText | undefined): TextStyle | undefined {

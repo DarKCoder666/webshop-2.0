@@ -3,6 +3,7 @@
 import React from "react";
 import { TextEffect } from "@/components/motion-primitives/text-effect";
 import { RichText } from "@/lib/builder-types";
+import { useLanguageStore } from '@/lib/stores/language-store';
 
 type RenderableTextProps = {
   content: string | RichText | undefined;
@@ -29,12 +30,37 @@ export function RenderableText({
   speedSegment = 0.9,
   fallback = "",
 }: RenderableTextProps) {
-  // Extract text and style from content
+  // Use language store to make component reactive to language changes
+  const currentLanguage = useLanguageStore(s => s.language);
+
+  // Determine if multilingual per-language fields exist
+  const hasPerLanguage = React.useMemo(() => {
+    if (!content || typeof content === "string") return false;
+    const ru = ((content as any).ru ?? "").toString().trim();
+    const en = ((content as any).en ?? "").toString().trim();
+    const uz = ((content as any).uz ?? "").toString().trim();
+    return Boolean(ru || en || uz);
+  }, [content]);
+
+  // Extract text with preference for non-empty per-language values
   const text = React.useMemo(() => {
     if (!content) return fallback;
     if (typeof content === "string") return content;
-    return content.text || fallback;
-  }, [content, fallback]);
+
+    const ru = ((content as any).ru ?? "").toString();
+    const en = ((content as any).en ?? "").toString();
+    const uz = ((content as any).uz ?? "").toString();
+
+    const langMap: Record<string, string> = { ru, en, uz };
+    const preferred = (langMap[currentLanguage] || "").trim();
+    if (preferred) return preferred;
+
+    const firstAvailable = [ru, en, uz].find(v => (v || "").trim());
+    if (firstAvailable) return firstAvailable as string;
+
+    if ((content as any).text) return (content as any).text as string;
+    return fallback;
+  }, [content, fallback, currentLanguage]);
 
   const style = React.useMemo(() => {
     // Default to preserving newlines and wrapping
@@ -54,6 +80,8 @@ export function RenderableText({
   // Don't render if no text
   if (!text) return null;
 
+  const combinedClassName = hasPerLanguage ? `${className} is-multilingual` : className;
+
   return (
     <TextEffect
       key={`text-${text}-${JSON.stringify(style)}`}
@@ -63,7 +91,7 @@ export function RenderableText({
       delay={delay}
       speedReveal={speedReveal}
       speedSegment={speedSegment}
-      className={className}
+      className={combinedClassName}
       style={style}
     >
       {text}

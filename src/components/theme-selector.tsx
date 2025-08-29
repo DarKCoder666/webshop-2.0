@@ -1,22 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { SiteConfig, ThemePreset } from '@/lib/builder-types';
+import { ThemePreset } from '@/lib/builder-types';
 import { themePresets } from '@/lib/theme-presets';
-import { saveSiteConfig } from '@/lib/fake-builder-api';
+import { useUpdateGlobalSettings } from '@/queries/global-settings';
+import { useCurrentThemePreset } from '@/lib/stores/global-theme-store';
+import { getCurrentShopId } from '@/api/webshop-api';
 import { cn } from '@/lib/utils';
 import { Palette, Sun, Moon, ChevronDown } from 'lucide-react';
 
 type ThemeSelectorProps = {
-  config: SiteConfig;
-  onConfigChange?: (config: SiteConfig) => void;
   onDarkModeChange?: (isDark: boolean) => void;
 };
 
-export function ThemeSelector({ config, onConfigChange, onDarkModeChange }: ThemeSelectorProps) {
+export function ThemeSelector({ onDarkModeChange }: ThemeSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const currentPreset = config.theme?.preset || 'default';
+  
+  // Use the new global theme store and API
+  const currentPreset = useCurrentThemePreset();
+  const shopId = getCurrentShopId();
+  const updateGlobalSettings = useUpdateGlobalSettings(shopId);
 
   // Load dark mode preference from localStorage on mount
   useEffect(() => {
@@ -30,25 +34,26 @@ export function ThemeSelector({ config, onConfigChange, onDarkModeChange }: Them
 
   const handleThemeChange = async (preset: ThemePreset) => {
     const themeData = themePresets[preset];
-    const updatedConfig = {
-      ...config,
-      theme: {
-        preset,
-        colors: themeData.colors,
-        darkColors: themeData.darkColors,
-        fontSans: themeData.fonts.sans,
-        fontSerif: themeData.fonts.serif,
-        fontMono: themeData.fonts.mono,
-        radius: '0.5rem',
-        // Don't save darkMode to config anymore
-      },
-    };
     
-    await saveSiteConfig(updatedConfig);
-    if (onConfigChange) {
-      onConfigChange(updatedConfig);
+    try {
+      await updateGlobalSettings.mutateAsync({
+        theme: {
+          preset,
+          colors: themeData.colors,
+          darkColors: themeData.darkColors,
+          fontSans: themeData.fonts.sans,
+          fontSerif: themeData.fonts.serif,
+          fontMono: themeData.fonts.mono,
+          radius: '0.5rem',
+          supportsDarkMode: true,
+          defaultMode: 'light',
+        },
+      });
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Failed to update theme:', error);
+      // You could show a toast notification here
     }
-    setIsOpen(false);
   };
 
   const handleDarkModeToggle = () => {

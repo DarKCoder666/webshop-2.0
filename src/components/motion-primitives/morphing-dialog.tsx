@@ -44,24 +44,46 @@ function useMorphingDialog() {
 export type MorphingDialogProviderProps = {
   children: React.ReactNode;
   transition?: Transition;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 function MorphingDialogProvider({
   children,
   transition,
+  open,
+  onOpenChange,
 }: MorphingDialogProviderProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const uniqueId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null!);
 
+  const isControlled = open !== undefined;
+  const effectiveIsOpen = isControlled ? (open as boolean) : uncontrolledOpen;
+
+  const setIsOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback(
+    (value) => {
+      const nextValue =
+        typeof value === 'function'
+          ? (value as (prevState: boolean) => boolean)(effectiveIsOpen)
+          : value;
+      if (isControlled) {
+        onOpenChange?.(nextValue);
+      } else {
+        setUncontrolledOpen(nextValue);
+      }
+    },
+    [effectiveIsOpen, isControlled, onOpenChange]
+  );
+
   const contextValue = useMemo(
     () => ({
-      isOpen,
+      isOpen: effectiveIsOpen,
       setIsOpen,
       uniqueId,
       triggerRef,
     }),
-    [isOpen, uniqueId]
+    [effectiveIsOpen, uniqueId, setIsOpen]
   );
 
   return (
@@ -74,18 +96,20 @@ function MorphingDialogProvider({
 export type MorphingDialogProps = {
   children: React.ReactNode;
   transition?: Transition;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
-function MorphingDialog({ children, transition }: MorphingDialogProps) {
+function MorphingDialog({ children, transition, open, onOpenChange }: MorphingDialogProps) {
   return (
-    <MorphingDialogProvider>
+    <MorphingDialogProvider transition={transition} open={open} onOpenChange={onOpenChange}>
       <MotionConfig transition={transition}>{children}</MotionConfig>
     </MorphingDialogProvider>
   );
 }
 
 export type MorphingDialogTriggerProps = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
   triggerRef?: React.RefObject<HTMLButtonElement>;
@@ -101,11 +125,12 @@ function MorphingDialogTrigger({
 }: MorphingDialogTriggerProps) {
   const { setIsOpen, isOpen, uniqueId } = useMorphingDialog();
 
-  const handleClick = useCallback(() => {
+  const handleClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     setIsOpen(!isOpen);
     if (onClick) {
       // invoke external click after toggling state
-      try { (onClick as any)({} as React.MouseEvent<HTMLButtonElement>); } catch {}
+      try { onClick(event); } catch {}
     }
   }, [isOpen, setIsOpen, onClick]);
 
@@ -124,6 +149,7 @@ function MorphingDialogTrigger({
       ref={triggerRef}
       layoutId={`dialog-${uniqueId}`}
       className={cn('relative cursor-pointer', className)}
+      type='button'
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       style={style}
@@ -201,10 +227,39 @@ function MorphingDialogContent({
       document.body.classList.remove('overflow-hidden');
       triggerRef.current?.focus();
     }
+    // Ensure scroll lock is always cleared on unmount
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
   }, [isOpen, triggerRef]);
 
-  useClickOutside(containerRef, () => {
+  useClickOutside(containerRef, (event) => {
     if (isOpen) {
+      // Check if the click is on any dialog or dialog-related elements
+      const clickedElement = event.target as Element;
+      const isClickOnAnyDialog = clickedElement.closest('[data-dialog-container="true"]');
+      const isClickOnDialogTrigger = clickedElement.closest('[aria-haspopup="dialog"]');
+      
+      // Count how many dialogs are currently open
+      const openDialogs = document.querySelectorAll('[data-dialog-container="true"]');
+      const isNestedDialog = openDialogs.length > 1;
+      
+      // Don't close if clicking on any dialog content or dialog trigger
+      if (isClickOnAnyDialog || isClickOnDialogTrigger) {
+        return;
+      }
+      
+      // If this is a nested dialog scenario, be more restrictive about closing
+      if (isNestedDialog) {
+        // Only close if clicking on this dialog's own backdrop
+        const clickedBackdrop = (event.target as Element).closest(`[data-dialog-backdrop="${uniqueId}"]`);
+        
+        if (!clickedBackdrop) {
+          return;
+        }
+      }
+      
+      // Only close if it's a genuine outside click
       setIsOpen(false);
     }
   });
@@ -214,11 +269,12 @@ function MorphingDialogContent({
       ref={containerRef}
       layoutId={`dialog-${uniqueId}`}
       className={cn('overflow-hidden', className)}
-      style={style}
+      style={{ ...style, pointerEvents: 'auto' }}
       role='dialog'
       aria-modal='true'
       aria-labelledby={`motion-ui-morphing-dialog-title-${uniqueId}`}
       aria-describedby={`motion-ui-morphing-dialog-description-${uniqueId}`}
+      data-dialog-container="true"
     >
       {children}
     </motion.div>
@@ -232,7 +288,7 @@ export type MorphingDialogContainerProps = {
 };
 
 function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
-  const { isOpen, uniqueId } = useMorphingDialog();
+  const { isOpen, uniqueId, setIsOpen } = useMorphingDialog();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -243,17 +299,25 @@ function MorphingDialogContainer({ children }: MorphingDialogContainerProps) {
   if (!mounted) return null;
 
   return createPortal(
-    <AnimatePresence initial={false} mode='sync'>
+    <AnimatePresence initial={false} mode='wait'>
       {isOpen && (
         <>
           <motion.div
             key={`backdrop-${uniqueId}`}
-            className='fixed inset-0 h-full w-full bg-white/40 backdrop-blur-xs dark:bg-black/40'
+            className='fixed inset-0 z-[999] h-full w-full bg-white/40 backdrop-blur-xs dark:bg-black/40'
+            data-dialog-backdrop={uniqueId}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={(e) => {
+              // Only close if clicking directly on the backdrop (not on dialog content)
+              if (e.target === e.currentTarget) {
+                setIsOpen(false);
+              }
+            }}
+            style={{ pointerEvents: 'auto' }}
           />
-          <div className='fixed inset-0 z-50 flex items-center justify-center'>
+          <div className='fixed inset-0 z-[1000] flex items-center justify-center' style={{ pointerEvents: 'none' }}>
             {children}
           </div>
         </>
@@ -377,6 +441,26 @@ function MorphingDialogImage({
   );
 }
 
+export type MorphingDialogPreviewProps = {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+function MorphingDialogPreview({ children, className, style }: MorphingDialogPreviewProps) {
+  const { uniqueId } = useMorphingDialog();
+
+  return (
+    <motion.div
+      layoutId={`dialog-img-${uniqueId}`}
+      className={cn(className)}
+      style={style}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export type MorphingDialogCloseProps = {
   children?: React.ReactNode;
   className?: string;
@@ -425,4 +509,6 @@ export {
   MorphingDialogSubtitle,
   MorphingDialogDescription,
   MorphingDialogImage,
+  MorphingDialogPreview,
+  useMorphingDialog,
 };

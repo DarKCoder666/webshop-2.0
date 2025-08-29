@@ -61,7 +61,7 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
     setReviews((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     const normalized = reviews
       .map((r) => ({
         name: typeof r.name === "string" ? { text: r.name } : r.name,
@@ -69,8 +69,8 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
       }))
       .filter((r) => (r.name?.text || "").trim() || (r.text?.text || "").trim());
 
-    await Promise.resolve(onSave({ reviews: normalized }));
-    // Close the dialog programmatically (consistent with block-selector)
+    onSave({ reviews: normalized });
+    // Close the dialog after local update
     setTimeout(() => {
       const closeButton = document.querySelector('[aria-label="Close dialog"]') as HTMLButtonElement | null;
       closeButton?.click();
@@ -87,13 +87,13 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
         <MorphingDialogContent className="bg-card border border-border rounded-lg shadow-lg max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <MorphingDialogClose />
           <div className="p-6 space-y-6">
-            <MorphingDialogTitle className="text-lg font-semibold">Testimonials Settings</MorphingDialogTitle>
+            <MorphingDialogTitle className="text-lg font-semibold">Настройки отзывов</MorphingDialogTitle>
 
             <div className="space-y-3">
               {reviews.map((r, i) => (
                 <div key={i} className="space-y-2 rounded-md border border-border p-3 bg-card">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium">Review #{i + 1}</label>
+                    <label className="text-xs font-medium">Отзыв #{i + 1}</label>
                     <button
                       type="button"
                       onClick={() => removeReview(i)}
@@ -104,14 +104,14 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
                     </button>
                   </div>
                   <div>
-                    <label className="text-xs font-medium">Name</label>
+                    <label className="text-xs font-medium">Имя</label>
                     <Input
                       value={(typeof r.name === "string" ? r.name : r.name?.text) ?? ""}
                       onChange={(e) => updateReview(i, "name", e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium">Text</label>
+                    <label className="text-xs font-medium">Текст</label>
                     <Textarea
                       rows={3}
                       value={(typeof r.text === "string" ? r.text : r.text?.text) ?? ""}
@@ -126,13 +126,13 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
                   onClick={addReview}
                   className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted text-card-foreground"
                 >
-                  <Plus className="h-4 w-4" /> Add review
+                  <Plus className="h-4 w-4" /> Добавить отзыв
                 </button>
               </div>
             </div>
 
             <div className="flex justify-end pt-2">
-              <button type="button" onClick={handleSave} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Save</button>
+              <button type="button" onClick={handleSave} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Сохранить</button>
             </div>
           </div>
         </MorphingDialogContent>

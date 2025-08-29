@@ -26,6 +26,12 @@ const BLOCK_PREVIEWS: Record<BlockType, string> = {
   testimonials2: "/block-previews/hero-section.png",
   testimonials3: "/block-previews/hero-section.png",
   productsList: "/block-previews/hero-section.png",
+  productGallery: "/block-previews/hero-section.png",
+  productDetails: "/block-previews/hero-section.png",
+  productOverview: "/block-previews/hero-section.png",
+  footerMinimal: "/block-previews/hero-section.png",
+  footerColumns: "/block-previews/hero-section.png",
+  footerHalfscreen: "/block-previews/hero-section.png",
 };
 
 type BlockSelectorDialogProps = {
@@ -50,9 +56,9 @@ export function BlockSelectorDialog({ onPick, trigger, className }: BlockSelecto
 
   return (
     <MorphingDialog>
-      <MorphingDialogTrigger className={cn("rounded-full border border-border bg-card px-3 py-2 text-sm font-medium shadow-md hover:bg-muted transition-colors text-card-foreground", className)}>
-        {trigger || "+ Добавить секцию здесь"}
-      </MorphingDialogTrigger>
+        <MorphingDialogTrigger className={cn("rounded-full border border-border bg-card px-3 py-2 text-sm font-medium shadow-md hover:bg-muted transition-colors text-card-foreground", className)}>
+          {trigger || "+ Добавить секцию здесь"}
+        </MorphingDialogTrigger>
       
       <MorphingDialogContainer>
         <MorphingDialogContent className="w-[900px] max-w-[95vw] rounded-2xl bg-card shadow-2xl border border-border">
@@ -65,12 +71,16 @@ export function BlockSelectorDialog({ onPick, trigger, className }: BlockSelecto
             </MorphingDialogDescription>
             
             <motion.div 
-              className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh]"
+              className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto overflow-x-hidden pr-2 pb-2"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'hsl(var(--muted)) transparent',
+              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              {BLOCK_SCHEMAS.map((schema, index) => (
+              {BLOCK_SCHEMAS.filter(schema => !schema.type.startsWith('footer')).map((schema, index) => (
                 <motion.div
                   key={schema.type}
                   initial={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -177,6 +187,12 @@ function getBlockDescription(type: BlockType): string {
       return "Карусель на контроллерах (без автопрокрутки)";
     case "productsList":
       return "Секция товаров с карточками и настройкой количества";
+    case "footerMinimal":
+      return "Минималистичный футер с описанием и ссылками";
+    case "footerColumns":
+      return "Футер с колонками, ссылками и рассылкой";
+    case "footerHalfscreen":
+      return "Креативный футер на пол-экрана с CTA";
     default:
       return "Секция для вашего сайта";
   }
@@ -196,6 +212,12 @@ function getBlockFeatures(type: BlockType): string[] {
       return ["Отзывы", "Две карусели", "Drag & autoplay"];
     case "productsList":
       return ["Карточки товаров", "Анимации", "Настройки"];
+    case "footerMinimal":
+      return ["Минимализм", "Соцсети", "Копирайт"];
+    case "footerColumns":
+      return ["4 колонки", "Ссылки", "Рассылка"];
+    case "footerHalfscreen":
+      return ["Пол-экрана", "Фон-изображение", "2 CTA"];
     default:
       return [];
   }
