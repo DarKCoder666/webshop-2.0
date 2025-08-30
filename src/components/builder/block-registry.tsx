@@ -17,9 +17,46 @@ import FooterMinimal, { FooterMinimalProps } from "@/components/sections/footer/
 import FooterColumns, { FooterColumnsProps } from "@/components/sections/footer/footer-columns";
 import FooterHalfscreen, { FooterHalfscreenProps } from "@/components/sections/footer/footer-halfscreen";
 import { BlockSchema, BlockType, BlockInstance } from "@/lib/builder-types";
+import TextLongform, { TextLongformProps } from "@/components/sections/text/text-longform";
+import TextWithImage, { TextWithImageProps } from "@/components/sections/text/text-with-image";
 import { ProductGalleryProps, ProductDetailsProps } from "@/lib/product-types";
 
 export const BLOCK_SCHEMAS: BlockSchema[] = [
+  {
+    type: "textLongform",
+    label: "Text - Longform (article + aside)",
+    editableFields: [],
+    defaultProps: {
+      kicker: { ru: "Наш подход", en: "Our approach", uz: "Bizning yondashuv" },
+      title: { ru: "Почему клиенты выбирают наш магазин", en: "Why shoppers choose our store", uz: "Nega mijozlar do‘konimizni tanlaydi" },
+      prose: {
+        ru: "Мы подбираем товары с учётом качества, цены и реальных отзывов. Наша витрина меняется каждую неделю, а доставка работает быстро и надёжно. Подробные описания и честные фотографии помогают сделать уверенный выбор без лишних сомнений.",
+        en: "We curate products for quality, value, and real reviews. Our storefront changes weekly and shipping is fast and reliable. Detailed descriptions and honest photos help you choose with confidence.",
+        uz: "Biz mahsulotlarni sifat, narx va haqiqiy fikrlar asosida saralaymiz. Do‘kon vitrinamiz har hafta yangilanadi, yetkazib berish tez va ishonchli. Batafsil tavsiflar va haqqoniy suratlar ishonch bilan tanlashga yordam beradi.",
+      },
+      aside: {
+        ru: "Совет: подпишитесь на рассылку — первые узнаете о скидках и новых коллекциях.",
+        en: "Tip: subscribe to our newsletter to hear first about sales and new collections.",
+        uz: "Maslahat: xabarnomaga obuna bo‘ling — chegirmalar va yangi kolleksiyalar haqida birinchi bo‘lib xabardor bo‘ling.",
+      },
+    },
+  },
+  {
+    type: "textWithImage",
+    label: "Text + Single Image",
+    editableFields: [],
+    defaultProps: {
+      title: { ru: "Подборка недели", en: "This week’s pick", uz: "Haftaning tanlovi" },
+      paragraph: {
+        ru: "Один товар — много впечатлений. Узнайте, почему его выбирают клиенты и как он сочетается с другими позициями. Идеален для повседневных образов и специальных случаев.",
+        en: "One product, many impressions. See why customers love it and how it pairs with other favorites. Perfect for everyday looks and special moments.",
+        uz: "Bitta mahsulot — ko‘plab taassurotlar. Mijozlar nega uni yaxshi ko‘rishini va boshqa mahsulotlar bilan qanday mos tushishini ko‘ring. Kundalik ko‘rinishlar va maxsus holatlar uchun juda mos.",
+      },
+      cta: { ru: "Перейти к товару", en: "View product", uz: "Mahsulotga o‘tish", href: "#" },
+      image: { src: "/random2.jpeg", alt: "Editorial product highlight" },
+      imagePosition: 'right',
+    },
+  },
   {
     type: "testimonials",
     label: "Testimonials",
@@ -33,7 +70,72 @@ export const BLOCK_SCHEMAS: BlockSchema[] = [
       title: { ru: "Наши довольные клиенты", en: "Meet our happy clients", uz: "Baxtli mijozlarimiz bilan tanishing" },
       subtitle: { ru: "Все наши 1000+ клиентов довольны", en: "All of our 1000+ clients are happy", uz: "1000+ mijozlarimiz mamnun" },
       ctaLabel: { ru: "Начать бесплатно", en: "Get started for free", uz: "Bepul boshlash" },
-      reviews: [],
+      reviews: [
+        {
+          name: "Alex Kim",
+          text: {
+            ru: "Быстрая доставка и отличное качество. Обязательно закажу снова!",
+            en: "Fast delivery and great quality. Will order again!",
+            uz: "Tez yetkazib berish va a’lo sifat. Yana buyurtma beraman!",
+          },
+        },
+        {
+          name: "Marina Petrova",
+          text: {
+            ru: "Понравилась упаковка, а товар полностью соответствует фото.",
+            en: "Loved the packaging and the product matches the photos.",
+            uz: "Qadoqlash yoqdi, mahsulot suratdagidek.",
+          },
+        },
+        {
+          name: "Otabek R.",
+          text: {
+            ru: "Честные цены и очень отзывчивая поддержка.",
+            en: "Prices are fair and customer support was very helpful.",
+            uz: "Narxlar adolatli, qo‘llab-quvvatlash juda foydali bo‘ldi.",
+          },
+        },
+        {
+          name: "Diana S.",
+          text: {
+            ru: "Отличная посадка. Таблица размеров очень помогла.",
+            en: "The fit is perfect. The sizing guide really helped.",
+            uz: "O‘lcham juda mos. O‘lcham jadvali juda yordam berdi.",
+          },
+        },
+        {
+          name: "John M.",
+          text: {
+            ru: "Плавная оплата, получал обновления на каждом этапе доставки.",
+            en: "Smooth checkout, got updates throughout shipping.",
+            uz: "To‘lov oson bo‘ldi, yetkazib berishda doimiy yangilanishlar oldim.",
+          },
+        },
+        {
+          name: "Svetlana K.",
+          text: {
+            ru: "Покупала в подарок сестре — она в восторге!",
+            en: "Bought as a gift for my sister — she was thrilled!",
+            uz: "Singlimga sovg‘a uchun oldim — juda xursand bo‘ldi!",
+          },
+        },
+        {
+          name: "Akmal T.",
+          text: {
+            ru: "Качество превзошло ожидания за свои деньги.",
+            en: "Quality exceeds expectations for the price.",
+            uz: "Narxiga nisbatan sifati kutilganidan yuqori.",
+          },
+        },
+        {
+          name: "Emily C.",
+          text: {
+            ru: "Обязательно порекомендую друзьям. Спасибо!",
+            en: "Will recommend to friends. Thank you!",
+            uz: "Do‘stlarimga tavsiya qilaman. Rahmat!",
+          },
+        },
+      ],
     },
   },
   {
@@ -71,7 +173,16 @@ export const BLOCK_SCHEMAS: BlockSchema[] = [
     defaultProps: {
       title: { ru: "Почему нас любят клиенты", en: "Why Clients Love Us", uz: "Nega mijozlar bizni yaxshi ko'radi" },
       subtitle: { ru: "Узнайте, как клиенты используют наши продукты для роста бизнеса", en: "Discover how our customers are using our products to build their businesses", uz: "Mijozlarimiz mahsulotlarimizdan bizneslarini rivojlantirishda qanday foydalanishadi" },
-      reviews: [],
+      reviews: [
+        { name: "Alex Kim", text: { ru: "Быстрая доставка и отличное качество. Обязательно закажу снова!", en: "Fast delivery and great quality. Will order again!", uz: "Tez yetkazib berish va a’lo sifat. Yana buyurtma beraman!" } },
+        { name: "Marina Petrova", text: { ru: "Понравилась упаковка, а товар полностью соответствует фото.", en: "Loved the packaging and the product matches the photos.", uz: "Qadoqlash yoqdi, mahsulot suratdagidek." } },
+        { name: "Otabek R.", text: { ru: "Честные цены и очень отзывчивая поддержка.", en: "Prices are fair and customer support was very helpful.", uz: "Narxlar adolatli, qo‘llab-quvvatlash juda foydali bo‘ldi." } },
+        { name: "Diana S.", text: { ru: "Отличная посадка. Таблица размеров очень помогла.", en: "The fit is perfect. The sizing guide really helped.", uz: "O‘lcham juda mos. O‘lcham jadvali juda yordam berdi." } },
+        { name: "John M.", text: { ru: "Плавная оплата, получал обновления на каждом этапе доставки.", en: "Smooth checkout, got updates throughout shipping.", uz: "To‘lov oson bo‘ldi, yetkazib berishda doimiy yangilanishlar oldim." } },
+        { name: "Svetlana K.", text: { ru: "Покупала в подарок сестре — она в восторге!", en: "Bought as a gift for my sister — she was thrilled!", uz: "Singlimga sovg‘a uchun oldim — juda xursand bo‘ldi!" } },
+        { name: "Akmal T.", text: { ru: "Качество превзошло ожидания за свои деньги.", en: "Quality exceeds expectations for the price.", uz: "Narxiga nisbatan sifati kutilganidan yuqori." } },
+        { name: "Emily C.", text: { ru: "Обязательно порекомендуй друзьям. Спасибо!", en: "Will recommend to friends. Thank you!", uz: "Do‘stlarimga tavsiya qilaman. Rahmat!" } },
+      ],
     },
   },
   {
@@ -81,7 +192,16 @@ export const BLOCK_SCHEMAS: BlockSchema[] = [
     defaultProps: {
       title: { ru: "Что говорят наши клиенты", en: "What our clients say", uz: "Mijozlarimiz nima deyishadi" },
       subtitle: { ru: "Узнайте, как клиенты используют наши продукты для роста бизнеса", en: "Discover how our customers are using our products to build their businesses", uz: "Mijozlarimiz mahsulotlarimizdan bizneslarini rivojlantirishda qanday foydalanishadi" },
-      reviews: [],
+      reviews: [
+        { name: "Alex Kim", text: { ru: "Быстрая доставка и отличное качество. Обязательно закажу снова!", en: "Fast delivery and great quality. Will order again!", uz: "Tez yetkazib berish va a’lo sifat. Yana buyurtma beraman!" } },
+        { name: "Marina Petrova", text: { ru: "Понравилась упаковка, а товар полностью соответствует фото.", en: "Loved the packaging and the product matches the photos.", uz: "Qadoqlash yoqdi, mahsulot suratdagidek." } },
+        { name: "Otabek R.", text: { ru: "Честные цены и очень отзывчивая поддержка.", en: "Prices are fair and customer support was very helpful.", uz: "Narxlar adolatli, qo‘llab-quvvatlash juda foydali bo‘ldi." } },
+        { name: "Diana S.", text: { ru: "Отличная посадка. Таблица размеров очень помогла.", en: "The fit is perfect. The sizing guide really helped.", uz: "O‘lcham juda mos. O‘lcham jadvali juda yordam berdi." } },
+        { name: "John M.", text: { ru: "Плавная оплата, получал обновления на каждом этапе доставки.", en: "Smooth checkout, got updates throughout shipping.", uz: "To‘lov oson bo‘ldi, yetkazib berishda doimiy yangilanishlar oldim." } },
+        { name: "Svetlana K.", text: { ru: "Покупала в подарок сестре — она в восторге!", en: "Bought as a gift for my sister — she was thrilled!", uz: "Singlimga sovg‘a uchun oldim — juda xursand bo‘ldi!" } },
+        { name: "Akmal T.", text: { ru: "Качество превзошло ожидания за свои деньги.", en: "Quality exceeds expectations for the price.", uz: "Narxiga nisbatan sifati kutilganidan yuqori." } },
+        { name: "Emily C.", text: { ru: "Обязательно порекомендую друзьям. Спасибо!", en: "Will recommend to friends. Thank you!", uz: "Do‘stlarimga tavsiya qilaman. Rahmat!" } },
+      ],
     },
   },
   {
@@ -434,11 +554,7 @@ export const BLOCK_SCHEMAS: BlockSchema[] = [
         { label: "Карьера", href: "#" },
         { label: "Контакты", href: "#" },
       ],
-      social: [
-        { label: "Twitter", href: "#", platform: "twitter" },
-        { label: "Instagram", href: "#", platform: "instagram" },
-        { label: "LinkedIn", href: "#", platform: "linkedin" },
-      ],
+      social: [],
       copyright: { text: "© 2025 Ваш бренд. Все права защищены." },
     },
   },
@@ -457,7 +573,6 @@ export const BLOCK_SCHEMAS: BlockSchema[] = [
         { title: { text: "Продукт" }, links: [{ label: "Возможности", href: "#" }, { label: "Цены", href: "#" }, { label: "Интеграции", href: "#" }] },
         { title: { text: "Компания" }, links: [{ label: "О нас", href: "#" }, { label: "Карьера", href: "#" }, { label: "Пресса", href: "#" }] },
         { title: { text: "Ресурсы" }, links: [{ label: "Блог", href: "#" }, { label: "Центр помощи", href: "#" }, { label: "Контакты", href: "#" }] },
-        { title: { text: "Правовая информация" }, links: [{ label: "Конфиденциальность", href: "#" }, { label: "Условия", href: "#" }, { label: "Файлы cookie", href: "#" }] },
       ],
       bottomNote: { text: "© 2025 Ваш бренд" },
     },
@@ -483,11 +598,7 @@ export const BLOCK_SCHEMAS: BlockSchema[] = [
       imageSrc: "/random1.jpeg",
       imageAlt: "Decorative",
       overlayGradient: true,
-      links: [
-        { label: "Privacy", href: "#" },
-        { label: "Terms", href: "#" },
-        { label: "Impressum", href: "#" },
-      ],
+      links: [],
       copyright: { text: "© 2025 Your Brand" },
     },
   },
@@ -501,6 +612,10 @@ type HeroSectionProps = React.ComponentProps<typeof HeroSection>;
 
 export function RenderBlock({ block }: { block: BlockInstance }) {
   switch (block.type) {
+    case "textLongform":
+      return <TextLongform {...(block.props as TextLongformProps)} blockId={block.id} />;
+    case "textWithImage":
+      return <TextWithImage {...(block.props as TextWithImageProps)} blockId={block.id} />;
     case "heroSection":
       return <HeroSection {...(block.props as HeroSectionProps)} blockId={block.id} />;
     case "hero37":

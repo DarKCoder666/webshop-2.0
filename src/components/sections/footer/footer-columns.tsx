@@ -31,7 +31,6 @@ export default function FooterColumns(props: FooterColumnsProps) {
       { title: { text: "Product" }, links: [{ label: "Features", href: "#" }, { label: "Pricing", href: "#" }, { label: "Integrations", href: "#" }] },
       { title: { text: "Company" }, links: [{ label: "About", href: "#" }, { label: "Careers", href: "#" }, { label: "Press", href: "#" }] },
       { title: { text: "Resources" }, links: [{ label: "Blog", href: "#" }, { label: "Help Center", href: "#" }, { label: "Contact", href: "#" }] },
-      { title: { text: "Legal" }, links: [{ label: "Privacy", href: "#" }, { label: "Terms", href: "#" }, { label: "Cookies", href: "#" }] },
     ],
     bottomNote = { text: "© 2025 Your Brand" },
   } = props;

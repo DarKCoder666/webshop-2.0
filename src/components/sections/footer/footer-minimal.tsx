@@ -8,7 +8,6 @@ import { RenderableText } from "@/components/builder/renderable-text";
 import { RichText } from "@/lib/builder-types";
 import { getRichTextContent, getRichTextStyle } from "@/lib/text-utils";
 import { cn } from "@/lib/utils";
-import { Github, Instagram, Linkedin, Twitter } from "lucide-react";
 
 type FooterLink = { label: string; href: string };
 type Social = { label: string; href: string; platform?: "twitter" | "instagram" | "linkedin" | "github" };
@@ -23,21 +22,6 @@ export type FooterMinimalProps = {
   copyright?: string | RichText;
 };
 
-function SocialIcon({ platform }: { platform?: Social["platform"] }) {
-  switch (platform) {
-    case "twitter":
-      return <Twitter className="h-4 w-4" />;
-    case "instagram":
-      return <Instagram className="h-4 w-4" />;
-    case "linkedin":
-      return <Linkedin className="h-4 w-4" />;
-    case "github":
-      return <Github className="h-4 w-4" />;
-    default:
-      return <span className="text-xs">•</span>;
-  }
-}
-
 export default function FooterMinimal(props: FooterMinimalProps) {
   const {
     blockId,
@@ -49,11 +33,6 @@ export default function FooterMinimal(props: FooterMinimalProps) {
       { label: "Blog", href: "#" },
       { label: "Careers", href: "#" },
       { label: "Contact", href: "#" },
-    ],
-    social = [
-      { label: "Twitter", href: "#", platform: "twitter" },
-      { label: "Instagram", href: "#", platform: "instagram" },
-      { label: "LinkedIn", href: "#", platform: "linkedin" },
     ],
     copyright = { text: "© 2025 Your Brand. All rights reserved." },
   } = props;
@@ -101,23 +80,17 @@ export default function FooterMinimal(props: FooterMinimalProps) {
             )}
           </div>
 
-          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-            {links.map((l, i) => (
-              <li key={`${l.label}-${i}`}>
-                <Link href={l.href} className="text-muted-foreground transition-colors hover:text-foreground">
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex items-center gap-3">
-            {social.map((s, i) => (
-              <Link key={`${s.label}-${i}`} href={s.href} className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground">
-                <SocialIcon platform={s.platform} />
-              </Link>
-            ))}
-          </div>
+          {links.length > 0 && (
+            <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              {links.map((l, i) => (
+                <li key={`${l.label}-${i}`}>
+                  <Link href={l.href} className="text-muted-foreground transition-colors hover:text-foreground">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
@@ -137,12 +110,6 @@ export default function FooterMinimal(props: FooterMinimalProps) {
           ) : (
             <RenderableText content={copyright} as="p" />
           )}
-
-          <div className="flex items-center gap-4">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Cookies</span>
-          </div>
         </div>
       </div>
     </footer>

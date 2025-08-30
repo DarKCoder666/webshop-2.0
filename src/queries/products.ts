@@ -51,7 +51,7 @@ export function useProductCategories(
 ) {
   return useQuery({
     queryKey: [...productQueryKeys.categories(), shopId],
-    queryFn: () => getWebsiteProductCategories(shopId),
+    queryFn: () => getWebsiteProductCategories({ shopId }),
     staleTime: 10 * 60 * 1000, // 10 minutes - categories don't change often
     ...options,
   });

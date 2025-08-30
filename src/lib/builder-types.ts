@@ -1,4 +1,4 @@
-export type BlockType = 'heroSection' | 'hero37' | 'hero210' | 'hero85' | 'navigation' | 'testimonials' | 'testimonials2' | 'testimonials3' | 'productsList' | 'productGallery' | 'productDetails' | 'productOverview' | 'footerMinimal' | 'footerColumns' | 'footerHalfscreen';
+export type BlockType = 'heroSection' | 'hero37' | 'hero210' | 'hero85' | 'navigation' | 'testimonials' | 'testimonials2' | 'testimonials3' | 'productsList' | 'productGallery' | 'productDetails' | 'productOverview' | 'footerMinimal' | 'footerColumns' | 'footerHalfscreen' | 'textLongform' | 'textWithImage';
 
 export type BlockInstance<TProps = Record<string, unknown>> = {
   id: string;

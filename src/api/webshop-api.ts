@@ -309,6 +309,111 @@ export async function deleteLayout(layoutId: string): Promise<void> {
 }
 
 /**
+ * Get minimal site configuration for new pages (only navigation and footer)
+ */
+export function getMinimalSiteConfig(): SiteConfig {
+  return {
+    id: 'minimal',
+    name: 'New Page',
+    blocks: [
+      {
+        id: 'block-nav',
+        type: 'navigation',
+        props: {
+          logoText: { text: "Your Logo" },
+          logoImageSrc: "/billy.svg",
+          logoPosition: "left",
+          cartCount: 0,
+          showCartIcon: true,
+          menuItems: [],
+        },
+      },
+      {
+        id: 'block-footer',
+        type: 'footerMinimal',
+        props: {
+          logoText: { 
+            ru: "Ваш Стиль", 
+            en: "Your Style", 
+            uz: "Sizning Uslubingiz" 
+          },
+          description: { 
+            ru: "Создаём незабываемые образы для особенных моментов.", 
+            en: "Creating unforgettable looks for special moments.", 
+            uz: "Maxsus daqiqalar uchun unutilmas obrazlar yaratamiz." 
+          },
+          links: [
+            { label: "О нас", href: "/about" },
+            { label: "Каталог", href: "/catalog" },
+            { label: "Контакты", href: "/contacts" },
+            { label: "Доставка", href: "/delivery" },
+          ],
+          social: [
+            { label: "Instagram", href: "#", platform: "instagram" },
+            { label: "Telegram", href: "#", platform: "telegram" },
+            { label: "Facebook", href: "#", platform: "facebook" },
+          ],
+          copyright: { 
+            ru: "© 2025 Ваш Стиль. Все права защищены.", 
+            en: "© 2025 Your Style. All rights reserved.", 
+            uz: "© 2025 Sizning Uslubingiz. Barcha huquqlar himoyalangan." 
+          },
+        },
+      },
+    ],
+    theme: {
+      preset: 'default',
+      colors: {
+        background: 'hsl(0 0% 100%)',
+        foreground: 'hsl(240 10% 3.9%)',
+        card: 'hsl(0 0% 100%)',
+        cardForeground: 'hsl(240 10% 3.9%)',
+        popover: 'hsl(0 0% 100%)',
+        popoverForeground: 'hsl(240 10% 3.9%)',
+        primary: 'hsl(240 5.9% 10%)',
+        primaryForeground: 'hsl(0 0% 98%)',
+        secondary: 'hsl(240 4.8% 95.9%)',
+        secondaryForeground: 'hsl(240 5.9% 10%)',
+        muted: 'hsl(240 4.8% 95.9%)',
+        mutedForeground: 'hsl(240 3.8% 46.1%)',
+        accent: 'hsl(240 4.8% 95.9%)',
+        accentForeground: 'hsl(240 5.9% 10%)',
+        destructive: 'hsl(0 84.2% 60.2%)',
+        destructiveForeground: 'hsl(0 0% 98%)',
+        border: 'hsl(240 5.9% 90%)',
+        input: 'hsl(240 5.9% 90%)',
+        ring: 'hsl(240 5.9% 10%)',
+        chart1: 'hsl(12 76% 61%)',
+        chart2: 'hsl(173 58% 39%)',
+        chart3: 'hsl(197 37% 24%)',
+        chart4: 'hsl(43 74% 66%)',
+        chart5: 'hsl(27 87% 67%)',
+        sidebar: 'hsl(0 0% 100%)',
+        sidebarForeground: 'hsl(240 5.3% 26.1%)',
+        sidebarPrimary: 'hsl(240 5.9% 10%)',
+        sidebarPrimaryForeground: 'hsl(0 0% 98%)',
+        sidebarAccent: 'hsl(240 4.8% 95.9%)',
+        sidebarAccentForeground: 'hsl(240 5.9% 10%)',
+        sidebarBorder: 'hsl(220 13% 91%)',
+        sidebarRing: 'hsl(217.2 32.6% 17.5%)'
+      },
+      fontSans: 'Inter',
+      fontSerif: 'serif',
+      fontMono: 'monospace',
+      radius: '0.5rem',
+      darkMode: false,
+      supportsDarkMode: true,
+      defaultMode: 'light',
+    },
+    seo: {
+      title: 'New Page',
+      description: 'Welcome to this new page',
+      keywords: 'website, page',
+    },
+  };
+}
+
+/**
  * Get default site configuration
  */
 export function getDefaultSiteConfig(): SiteConfig {
@@ -750,10 +855,12 @@ export async function getWebsiteProductAttributes(shopId?: string): Promise<Prod
 /**
  * Get website product categories
  */
-export async function getWebsiteProductCategories(shopId?: string): Promise<ProductCategoriesResponse> {
+export async function getWebsiteProductCategories(params?: { shopId?: string; page?: number; limit?: number }): Promise<ProductCategoriesResponse> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', params?.shopId || DEFAULT_SHOP_ID);
+    if (params?.page) queryParams.set('page', String(params.page));
+    if (params?.limit) queryParams.set('limit', String(params.limit));
 
     const response = await axiosInstance.get<ProductCategoriesResponse>(`webshop/categories?${queryParams}`);
     return response.data;

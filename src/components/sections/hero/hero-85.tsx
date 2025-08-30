@@ -55,7 +55,7 @@ export default function Hero85({
     return duplicated.slice(0, 12);
   }, [images]);
   return (
-    <section className="py-32">
+    <section className="py-0 md:py-16">
       <div className="container mx-auto px-6 md:px-10 lg:px-16">
         <div className="grid items-center gap-16 lg:grid-cols-2">
           <div className="mx-auto w-full max-w-xl">

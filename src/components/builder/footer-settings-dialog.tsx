@@ -86,11 +86,7 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
   ]
   );
   const [minSocial, setMinSocial] = React.useState<Social[]>(
-    existingType === 'footerMinimal' ? getArray<Social>(existingMinimalProps?.social) : [
-    { label: 'Twitter', href: '#', platform: 'twitter' },
-    { label: 'Instagram', href: '#', platform: 'instagram' },
-    { label: 'LinkedIn', href: '#', platform: 'linkedin' },
-  ]
+    existingType === 'footerMinimal' ? getArray<Social>(existingMinimalProps?.social) : []
   );
   const [minShowNewsletter, setMinShowNewsletter] = React.useState<boolean>(
     false
@@ -122,7 +118,6 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
     { title: 'Продукт', links: [{ label: 'Возможности', href: '#' }, { label: 'Цены', href: '#' }, { label: 'Интеграции', href: '#' }] },
     { title: 'Компания', links: [{ label: 'О нас', href: '#' }, { label: 'Карьера', href: '#' }, { label: 'Пресса', href: '#' }] },
     { title: 'Ресурсы', links: [{ label: 'Блог', href: '#' }, { label: 'Центр поддержки', href: '#' }, { label: 'Контакты', href: '#' }] },
-    { title: 'Правовая информация', links: [{ label: 'Конфиденциальность', href: '#' }, { label: 'Условия', href: '#' }, { label: 'Cookies', href: '#' }] },
   ]
   );
   const [colShowNewsletter, setColShowNewsletter] = React.useState<boolean>(false);
@@ -342,7 +337,7 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
                     </div>
                   )}
                   {renderLinksEditor(minLinks, setMinLinks, 'Links')}
-                  {renderSocialEditor()}
+                  {/* Social editor hidden per requirement */}
                   <div>
                     <label className="block text-sm mb-1">Copyright</label>
                     <Input value={minCopyright} onChange={(e) => setMinCopyright(e.target.value)} />

@@ -70,7 +70,7 @@ export default function Hero37({
         <div className="absolute inset-x-0 bottom-0 h-48 opacity-60 [mask-image:linear-gradient(to_top,black,transparent)] bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.08)_1px,transparent_1px)] [background-size:16px_16px]" />
       </div>
 
-      <div className="container mx-auto px-6 md:px-10 lg:px-16 py-24 text-center md:py-32">
+      <div className="container mx-auto px-6 md:px-10 lg:px-16 py-0 md:py-16 text-center">
         {/* Badge */}
         {(badge || isBuilder) && (
           isBuilder ? (

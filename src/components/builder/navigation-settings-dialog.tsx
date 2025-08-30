@@ -13,6 +13,7 @@ import {
 } from '@/components/motion-primitives/morphing-dialog';
 import { Navigation2 } from 'lucide-react';
 import { SiteConfig } from '@/lib/builder-types';
+import { useI18n } from '@/lib/i18n';
 import { getAllLayouts, WebshopLayout } from '@/api/webshop-api';
 import { ImageManagerDialog, type ImageData } from '@/components/image-manager-dialog';
 
@@ -31,20 +32,19 @@ type NavigationSettingsDialogProps = {
 
 export function NavigationSettingsDialog({ config, onNavigationChange }: NavigationSettingsDialogProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const t = useI18n();
   
   // Get current navigation settings from config
   const navigationBlock = config.blocks.find(block => block.type === 'navigation');
   const currentSettings: NavigationSettings = {
     logoPosition: (navigationBlock?.props?.logoPosition as 'left' | 'middle') || 'left',
-    logoText: (navigationBlock?.props?.logoText as any)?.text || 'Your Logo',
+    // logoText removed from settings UI; keep existing value if present, otherwise empty
+    logoText: (navigationBlock?.props?.logoText as any)?.text || '',
     logoImageSrc: (navigationBlock?.props?.logoImageSrc as string) || '/billy.svg',
     showCartIcon: (navigationBlock?.props?.showCartIcon as boolean) !== false,
-    menuItems: (navigationBlock?.props?.menuItems as Array<{name: string; href: string}>) || [
-      { name: 'Features', href: '#link' },
-      { name: 'Solution', href: '#link' },
-      { name: 'Pricing', href: '#link' },
-      { name: 'About', href: '#link' },
-    ],
+    menuItems: Array.isArray(navigationBlock?.props?.menuItems)
+      ? (navigationBlock?.props?.menuItems as Array<{name: string; href: string}>)
+      : [],
   };
 
   const [settings, setSettings] = React.useState<NavigationSettings>(currentSettings);
@@ -88,7 +88,7 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
   const addMenuItem = () => {
     setSettings({
       ...settings,
-      menuItems: [...settings.menuItems, { name: 'New Item', href: '#' }]
+      menuItems: [...settings.menuItems, { name: t('new_menu_item'), href: '#' }]
     });
   };
 
@@ -123,33 +123,26 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
           
           <div className="p-6 space-y-6">
             <MorphingDialogTitle className="text-lg font-semibold">
-              Navigation Settings
+              {t('nav_settings_title')}
             </MorphingDialogTitle>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Logo Position</label>
+                <label className="block text-sm font-medium mb-2">{t('logo_position')}</label>
                 <select
                   value={settings.logoPosition}
                   onChange={(e) => setSettings({ ...settings, logoPosition: e.target.value as 'left' | 'middle' })}
                   className="w-full p-2 border border-border rounded-md bg-background"
                 >
-                  <option value="left">Left</option>
-                  <option value="middle">Middle</option>
+                  <option value="left">{t('left')}</option>
+                  <option value="middle">{t('middle')}</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Logo Text</label>
-                <Input
-                  value={settings.logoText}
-                  onChange={(e) => setSettings({ ...settings, logoText: e.target.value })}
-                  placeholder="Your Logo"
-                />
-              </div>
+              {/* Logo Text field removed */}
 
               <div>
-                <label className="block text-sm font-medium mb-2">Logo Image</label>
+                <label className="block text-sm font-medium mb-2">{t('logo_image')}</label>
                 <div className="flex items-center gap-3">
                   <Input
                     value={settings.logoImageSrc}
@@ -180,7 +173,7 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
                       type="button"
                       className="h-9 rounded-md border px-3 text-sm bg-secondary hover:bg-secondary/90 cursor-pointer"
                     >
-                      Choose
+                      {t('choose')}
                     </button>
                   </ImageManagerDialog>
                 </div>
@@ -193,25 +186,16 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
 
               {/* Cart count removed as per requirements */}
 
-              <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={settings.showCartIcon}
-                    onChange={(e) => setSettings({ ...settings, showCartIcon: e.target.checked })}
-                  />
-                  <span className="text-sm font-medium">Show Cart Icon</span>
-                </label>
-              </div>
+              {/* Show Cart Icon removed; cart icon is always shown */}
 
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <label className="block text-sm font-medium">Menu Items</label>
+                  <label className="block text-sm font-medium">{t('menu_items')}</label>
                   <Button onClick={addMenuItem} size="sm" variant="outline">
-                    Add Item
+                    {t('add_item')}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mb-2">Categories and Catalog are always shown.</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('nav_always_show_categories_catalog')}</p>
                 <div className="space-y-3">
                   {settings.menuItems.map((item, index) => (
                     <div key={index} className="flex flex-col gap-2 rounded-md border border-border p-3">
@@ -219,16 +203,15 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
                         <Input
                           value={item.name}
                           onChange={(e) => updateMenuItem(index, 'name', e.target.value)}
-                          placeholder="Menu name"
+                          placeholder={t('label')}
                           className="flex-1"
                         />
                         <Button
                           onClick={() => removeMenuItem(index)}
                           size="sm"
                           variant="destructive"
-                          disabled={settings.menuItems.length <= 1}
                         >
-                          Remove
+                          {t('remove')}
                         </Button>
                       </div>
                       <div className="flex gap-2 items-center">
@@ -245,7 +228,7 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
                           disabled={loadingPages}
                         >
                           <option value="" disabled>
-                            {loadingPages ? 'Loading pages...' : 'Select a page'}
+                            {loadingPages ? t('loading_pages') : t('select_a_page')}
                           </option>
                           {pages.map((p) => (
                             <option key={p._id} value={p._id}>{getPageLabel(p)}</option>
@@ -254,7 +237,7 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
                         <Input
                           value={item.href}
                           onChange={(e) => updateMenuItem(index, 'href', e.target.value)}
-                          placeholder="Or enter custom URL"
+                          placeholder={t('enter_custom_url')}
                           className="flex-1"
                         />
                       </div>
@@ -266,7 +249,7 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
 
             <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Save Changes
+                {t('save_changes')}
               </Button>
             </div>
           </div>

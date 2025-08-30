@@ -71,8 +71,11 @@ export function ImageManagerDialog({
   }, [showImageManager])
 
   const handleImageSelection = (selectedImages: ImageData[]) => {
-    onSelectionChange?.(selectedImages)
-    setShowImageManager(false)
+    // Defer to avoid parent state updates during child render
+    setTimeout(() => {
+      onSelectionChange?.(selectedImages)
+      setShowImageManager(false)
+    }, 0)
   }
 
   return (
@@ -130,7 +133,8 @@ export function ImageManagerDialog({
                   ignoreInitialCallbackRef.current = false
                   return
                 }
-                handleImageSelection(images)
+                // Defer to avoid "update while rendering a different component"
+                setTimeout(() => handleImageSelection(images), 0)
               }}
               acceptedTypes={acceptedTypes}
               maxFileSize={maxFileSize}

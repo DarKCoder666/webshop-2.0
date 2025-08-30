@@ -43,11 +43,7 @@ export default function FooterHalfscreen(props: FooterHalfscreenProps) {
     imageSrc = "/random3.jpeg",
     imageAlt = "Decorative",
     overlayGradient = true,
-    links = [
-      { label: "Privacy", href: "#" },
-      { label: "Terms", href: "#" },
-      { label: "Impressum", href: "#" },
-    ],
+    links = [],
     copyright = { text: "© 2025 Your Brand" },
   } = props;
 
@@ -148,15 +144,17 @@ export default function FooterHalfscreen(props: FooterHalfscreenProps) {
           ) : (
             <RenderableText content={copyright} />
           )}
-          <ul className="flex flex-wrap items-center gap-4">
-            {links.map((l, i) => (
-              <li key={`${l.label}-${i}`}>
-                <Link href={l.href} className="hover:text-foreground">
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {links.length > 0 && (
+            <ul className="flex flex-wrap items-center gap-4">
+              {links.map((l, i) => (
+                <li key={`${l.label}-${i}`}>
+                  <Link href={l.href} className="hover:text-foreground">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </footer>

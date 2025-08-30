@@ -109,11 +109,9 @@ export function EditableText({
 
   // Initialize state from props on mount only
   useEffect(() => {
-    const initialText = String(children || "");
-    setText(initialText);
     setTextStyle(style || {});
-    
-    // Initialize multilingual content from existing data
+
+    // Handle rich text object or primitive string
     if (isRichTextLike(children)) {
       const richText = children;
       const content: Record<LanguageCode, string> = {
@@ -122,30 +120,21 @@ export function EditableText({
         uz: richText.uz || richText.text || '',
       };
       setMultilingualContent(content);
-      
-      // Check if this is already multilingual content
+
       const hasMultilingualData = Boolean(richText.ru || richText.en || richText.uz);
+      const currentLang = getCurrentLanguage();
+      const preferred = content[currentLang] || content.ru || content.en || content.uz || '';
+      setText(preferred);
       if (hasMultilingualData) {
         setIsMultilingual(true);
-        // Set active language to one that has content, or current language
-        const currentLang = getCurrentLanguage();
-        if (content[currentLang]) {
-          setActiveLanguage(currentLang);
-          setText(content[currentLang]);
-        } else {
-          // Find first language with content
-          const langWithContent = (['ru', 'en', 'uz'] as LanguageCode[]).find(lang => content[lang]);
-          if (langWithContent) {
-            setActiveLanguage(langWithContent);
-            setText(content[langWithContent]);
-          }
-        }
+        setActiveLanguage(content[currentLang] ? currentLang : (['ru', 'en', 'uz'] as LanguageCode[]).find(l => content[l]) || 'ru');
       }
     } else {
-      // Initialize all languages with the single text value
+      const initialText = String(children || "");
+      setText(initialText);
       setMultilingualContent({ ru: initialText, en: initialText, uz: initialText });
     }
-    
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 

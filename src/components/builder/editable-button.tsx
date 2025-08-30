@@ -93,45 +93,30 @@ export function EditableButton({
   // Initialize state from props on mount only
   useEffect(() => {
     const source = (content !== undefined ? content : children) as unknown;
-    const initialText = typeof source === 'string' ? source : String(children || "");
-    setText(initialText);
     setButtonStyle(style || {});
     setButtonHref(href);
     
-    // Initialize multilingual content from existing data
     const rich = isRichButtonLike(source) ? source : null;
     if (rich) {
       const richButton = rich;
-      const content = {
+      const contentPer: Record<LanguageCode, string> = {
         ru: richButton.ru || richButton.text || '',
         en: richButton.en || richButton.text || '',
         uz: richButton.uz || richButton.text || '',
       };
-      setMultilingualContent(content);
-      
-      // Check if this is already multilingual content
+      setMultilingualContent(contentPer);
       const hasMultilingualData = Boolean(richButton.ru || richButton.en || richButton.uz);
+      const currentLang = getCurrentLanguage();
+      const preferred = contentPer[currentLang] || contentPer.ru || contentPer.en || contentPer.uz || '';
+      setText(preferred);
       if (hasMultilingualData) {
         setIsMultilingual(true);
-        // Set active language to one that has content, or current language
-        const currentLang = getCurrentLanguage();
-        if (content[currentLang]) {
-          setActiveLanguage(currentLang);
-          setText(content[currentLang]);
-        } else {
-          // Find first language with content
-          const langWithContent = (['ru', 'en', 'uz'] as LanguageCode[]).find(lang => content[lang]);
-          if (langWithContent) {
-            setActiveLanguage(langWithContent);
-            setText(content[langWithContent]);
-          }
-        }
+        setActiveLanguage(contentPer[currentLang] ? currentLang : (['ru', 'en', 'uz'] as LanguageCode[]).find(l => contentPer[l]) || 'ru');
       }
-      
-      // Set other properties
       if (richButton.href) setButtonHref(richButton.href);
     } else {
-      // Initialize all languages with the single text value
+      const initialText = String(children || "");
+      setText(initialText);
       setMultilingualContent({ ru: initialText, en: initialText, uz: initialText });
     }
     

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { WebshopLayout, getAllLayouts, createLayout } from '@/api/webshop-api';
 import { SiteConfig } from '@/lib/builder-types';
-import { getDefaultSiteConfig } from '@/api/webshop-api';
+import { getMinimalSiteConfig } from '@/api/webshop-api';
 import { 
   MorphingDialog, 
   MorphingDialogTrigger, 
@@ -91,8 +91,8 @@ function PagesManagementDialog({ currentPageType = 'home', currentLayoutId, onPa
     try {
       setCreating(true);
       
-      // Create a default config with SEO settings and route
-      const defaultConfig = getDefaultSiteConfig();
+      // Create a minimal config with SEO settings and route
+      const defaultConfig = getMinimalSiteConfig();
       const route = formData.pageRoute.startsWith('/') 
         ? formData.pageRoute.slice(1) 
         : formData.pageRoute;

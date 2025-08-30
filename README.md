@@ -1,3 +1,28 @@
+## Product sitemap generation
+
+To help search engines discover all product detail pages, this project includes a generator that fetches all products and writes:
+
+- `public/products.json` – cached list of product ids and timestamps
+- `public/sitemaps/products-sitemap.xml` – product sitemap consumed by robots
+
+Run locally or in cron:
+
+```
+npm run generate:product-sitemap
+```
+
+Environment variables used:
+
+- `NEXT_PUBLIC_API_URL` – API base URL (e.g. https://api.example.com)
+- `NEXT_PUBLIC_SHOP_ID` – shop identifier
+- `NEXT_PUBLIC_BASE_URL` – public site URL (e.g. https://www.example.com)
+
+Example crontab (run hourly):
+
+```
+0 * * * * cd /path/to/webshop-2.0 && /usr/bin/env npm run generate:product-sitemap >> cron.log 2>&1
+```
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

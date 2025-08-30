@@ -19,6 +19,8 @@ import {
   Product,
   ProductCategory
 } from "@/api/webshop-api";
+import { formatPriceWithSettings } from "@/lib/currency-utils";
+import { useWebshopSettings } from "@/components/providers/webshop-settings-provider";
 import ProductCard, { ProductCardData } from "@/components/sections/product-list/product-card";
 import { ProductCardV2, ProductCardV3, ProductCardV4 } from "@/components/sections/product-list/product-card-variants";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,6 +34,7 @@ type ProductsSettingsDialogProps = {
 export function ProductsSettingsDialog({ block, onSave }: ProductsSettingsDialogProps) {
   const initial = (block.props || {}) as any;
   const queryClient = useQueryClient();
+  const { settings } = useWebshopSettings();
   
   // Display settings
   const [itemsToShow, setItemsToShow] = React.useState<number>(initial.itemsToShow ?? 6);
@@ -383,7 +386,7 @@ export function ProductsSettingsDialog({ block, onSave }: ProductsSettingsDialog
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-sm truncate">{product.name}</div>
                                 <div className="text-xs text-muted-foreground">
-                                  {price > 0 && `₽${price}`}
+                                  {price > 0 && formatPriceWithSettings(price, settings)}
                                   {product.categories.length > 0 && price > 0 && ' • '}
                                   {product.categories.length > 0 && (
                                     categories.find(cat => cat._id === product.categories[0])?.name || 'Категория'
@@ -462,7 +465,7 @@ export function ProductsSettingsDialog({ block, onSave }: ProductsSettingsDialog
                                   <>
                                     {price > 0 && (
                                       <div className="text-xs text-muted-foreground">
-                                        ₽{price}
+                                        {formatPriceWithSettings(price, settings)}
                                       </div>
                                     )}
                                     {product?.categories && product.categories.length > 0 && (

@@ -92,6 +92,22 @@ export default function Hero210({
   const [domLoaded, setDomLoaded] = useState(false);
   const { isBuilder, updateBlockText, updateBlockProps } = useBuilder();
   
+  // Create circular buffer with up to 30 images
+  const createCircularBuffer = (originalImages: typeof images) => {
+    if (!originalImages || originalImages.length === 0) return [];
+    
+    const targetCount = 30;
+    const buffer = [];
+    
+    for (let i = 0; i < targetCount; i++) {
+      buffer.push(originalImages[i % originalImages.length]);
+    }
+    
+    return buffer;
+  };
+  
+  const circularImages = createCircularBuffer(images);
+  
   useEffect(() => setDomLoaded(true), []);
 
   // Convert ImageManager selection to ImageItem format
@@ -107,15 +123,58 @@ export default function Hero210({
   };
 
   const css = `
-  .mySwiperHero210 { width: 100%; height: 420px; padding-bottom: 50px; }
-  .mySwiperHero210 .swiper-slide { background-position: center; background-size: cover; width: 300px; }
-  .mySwiperHero210 .swiper-slide img { display: block; width: 100%; }
+  .mySwiperHero210 { 
+    width: 100%; 
+    height: 460px; 
+    padding-bottom: 50px; 
+    overflow: hidden; /* Keep slides within container bounds */
+  }
+  .mySwiperHero210 .swiper-slide { 
+    background-position: center; 
+    background-size: cover; 
+    width: 250px; /* Mobile: smaller slides */
+    height: 333px; /* 3:4 aspect ratio (250 * 4/3 = 333) */
+    margin-right: 16px; /* Add spacing between slides */
+  }
+  .mySwiperHero210 .swiper-slide img { 
+    display: block; 
+    width: 100%; 
+    height: 100%;
+    aspect-ratio: 3/4; /* Enforce 3:4 aspect ratio */
+  }
   .swiper-3d .swiper-slide-shadow-left { background-image: none; }
   .swiper-3d .swiper-slide-shadow-right { background: none; }
+  
+  /* Tablet: Medium size slides */
+  @media (min-width: 768px) {
+    .mySwiperHero210 .swiper-slide { 
+      width: 260px;
+      height: 347px; /* 3:4 aspect ratio (260 * 4/3 = 347) */
+      margin-right: 20px;
+    }
+  }
+  
+  /* Desktop: Exactly 3 visible slides - calculated for container width */
+  @media (min-width: 1024px) {
+    .mySwiperHero210 .swiper-slide { 
+      width: 280px; /* Optimized to show exactly 3 slides */
+      height: 373px; /* 3:4 aspect ratio (280 * 4/3 = 373) */
+      margin-right: 20px;
+    }
+  }
+  
+  /* Large desktop: Maintain 3 slides with better spacing */
+  @media (min-width: 1440px) {
+    .mySwiperHero210 .swiper-slide { 
+      width: 300px; /* Slightly larger for better appearance */
+      height: 400px; /* 3:4 aspect ratio (300 * 4/3 = 400) */
+      margin-right: 24px;
+    }
+  }
   `;
 
   return (
-    <section className="py-24 md:py-32">
+    <section className="py-0 md:py-16">
       <style>{css}</style>
       <div className="container mx-auto px-6 md:px-10 lg:px-16">
         <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-4">
@@ -174,7 +233,7 @@ export default function Hero210({
           )}
         </div>
 
-        <div className="relative mt-12 h-[420px] w-full lg:px-20">
+        <div className="relative mt-12 h-[460px] w-full lg:px-20">
           <div className="pointer-events-none absolute left-0 z-10 h-full w-12 bg-gradient-to-r from-background via-background to-transparent md:w-24 lg:left-16" />
           <div className="pointer-events-none absolute right-0 z-10 h-full w-12 bg-gradient-to-l from-background via-background to-transparent md:w-24 lg:right-16" />
 
@@ -191,21 +250,34 @@ export default function Hero210({
               onSelectionChange={handleImageSelection}
               className="w-full h-full"
             >
-              {domLoaded && images && images.length > 0 ? (
+              {domLoaded && circularImages && circularImages.length > 0 ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="w-full">
                   <Swiper
-                    autoplay={{ delay: 1500, disableOnInteraction: false }}
+                    autoplay={{ 
+                      delay: 1500, 
+                      disableOnInteraction: false,
+                      pauseOnMouseEnter: true
+                    }}
                     effect="coverflow"
                     grabCursor={true}
                     slidesPerView="auto"
                     centeredSlides={true}
                     loop={true}
-                    coverflowEffect={{ rotate: 50, stretch: 0, depth: 100, modifier: 1, slideShadows: true }}
+                    loopAdditionalSlides={5}
+                    watchSlidesProgress={true}
+                    initialSlide={Math.floor(circularImages.length / 2)}
+                    coverflowEffect={{ 
+                      rotate: 50, 
+                      stretch: 0, 
+                      depth: 100, 
+                      modifier: 1, 
+                      slideShadows: true 
+                    }}
                     className="mySwiperHero210"
                     modules={[EffectCoverflow, Autoplay]}
                   >
-                    {[...images, ...images].map((image, index) => (
-                      <SwiperSlide key={index}>
+                    {circularImages.map((image, index) => (
+                      <SwiperSlide key={`circular-${index}-${image.src}`}>
                         <img
                           className="h-full w-full overflow-hidden rounded-3xl object-cover shadow-lg"
                           src={image.src}
@@ -226,21 +298,34 @@ export default function Hero210({
                 </motion.div>
               )}
             </ImageManagerDialog>
-          ) : domLoaded && images && images.length > 0 ? (
+          ) : domLoaded && circularImages && circularImages.length > 0 ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="w-full">
               <Swiper
-                autoplay={{ delay: 1500, disableOnInteraction: false }}
+                autoplay={{ 
+                  delay: 1500, 
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true
+                }}
                 effect="coverflow"
                 grabCursor={true}
                 slidesPerView="auto"
                 centeredSlides={true}
                 loop={true}
-                coverflowEffect={{ rotate: 50, stretch: 0, depth: 100, modifier: 1, slideShadows: true }}
+                loopAdditionalSlides={5}
+                watchSlidesProgress={true}
+                initialSlide={Math.floor(circularImages.length / 2)}
+                coverflowEffect={{ 
+                  rotate: 50, 
+                  stretch: 0, 
+                  depth: 100, 
+                  modifier: 1, 
+                  slideShadows: true 
+                }}
                 className="mySwiperHero210"
                 modules={[EffectCoverflow, Autoplay]}
               >
-                {[...images, ...images].map((image, index) => (
-                  <SwiperSlide key={index}>
+                {circularImages.map((image, index) => (
+                  <SwiperSlide key={`circular-${index}-${image.src}`}>
                     <img
                       className="h-full w-full overflow-hidden rounded-3xl object-cover shadow-lg"
                       src={image.src}
