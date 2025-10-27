@@ -1,3 +1,33 @@
+## Runtime Environment Variables 🔧
+
+Этот проект использует **runtime environment variables** через `next-runtime-env`. Это означает:
+
+✅ Переменные окружения загружаются при запуске контейнера (runtime), а не при сборке  
+✅ Один Docker образ работает для всех tenants с разными настройками  
+✅ Tenant Controller может инжектить переменные динамически  
+
+### Обязательные переменные
+
+```bash
+NEXT_PUBLIC_API_URL=https://api.yourbackend.com    # URL backend API
+NEXT_PUBLIC_SHOP_ID=60f7b3b3b3b3b3b3b3b3b3b3        # ID магазина в системе
+NEXT_PUBLIC_BASE_URL=https://yourshop.com          # Базовый URL сайта
+```
+
+📖 **Подробная документация:**
+- [RUNTIME_ENV.md](./RUNTIME_ENV.md) - Полное руководство по runtime env
+- [TENANT_CONTROLLER_INTEGRATION.md](./TENANT_CONTROLLER_INTEGRATION.md) - Интеграция с Tenant Controller
+
+### Запуск с Docker
+
+```bash
+docker run -p 3000:3000 \
+  -e NEXT_PUBLIC_API_URL=https://api.example.com \
+  -e NEXT_PUBLIC_SHOP_ID=your-shop-id \
+  -e NEXT_PUBLIC_BASE_URL=https://myshop.com \
+  webshop:latest
+```
+
 ## Product sitemap generation
 
 To help search engines discover all product detail pages, this project includes a generator that fetches all products and writes:
@@ -10,12 +40,6 @@ Run locally or in cron:
 ```
 npm run generate:product-sitemap
 ```
-
-Environment variables used:
-
-- `NEXT_PUBLIC_API_URL` – API base URL (e.g. https://api.example.com)
-- `NEXT_PUBLIC_SHOP_ID` – shop identifier
-- `NEXT_PUBLIC_BASE_URL` – public site URL (e.g. https://www.example.com)
 
 Example crontab (run hourly):
 

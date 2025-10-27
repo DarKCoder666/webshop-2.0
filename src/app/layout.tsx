@@ -5,6 +5,7 @@ import { Providers } from "@/components/providers";
 import { HeroHeader } from "@/components/sections/header/header";
 import Footer from "@/components/sections/footer/footer";
 import { getAllLayouts } from "@/api/webshop-api";
+import { PublicEnvScript } from 'next-runtime-env';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
+      <head>
+        <PublicEnvScript />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

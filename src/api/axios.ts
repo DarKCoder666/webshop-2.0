@@ -1,7 +1,8 @@
 import axios, { AxiosHeaders } from "axios";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/env";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const apiUrl = getApiUrl();
 
 const instance = axios.create({
   withCredentials: true,

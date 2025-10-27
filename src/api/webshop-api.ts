@@ -1,6 +1,7 @@
 import { SiteConfig, BlockInstance, BlockType } from '@/lib/builder-types';
 import { getSchema } from '@/components/builder/block-registry';
 import axiosInstance from './axios';
+import { getShopId } from '@/lib/env';
 
 // New types to match the backend API
 export interface WebshopLayout {
@@ -24,7 +25,7 @@ export interface WebshopLayoutsResponse {
 }
 
 // Default shopId - in a real app this would come from user session/context
-const DEFAULT_SHOP_ID = process.env.NEXT_PUBLIC_SHOP_ID || '60f7b3b3b3b3b3b3b3b3b3b3';
+const DEFAULT_SHOP_ID = getShopId();
 const HOME_PAGE_TYPE = 'home';
 
 /**

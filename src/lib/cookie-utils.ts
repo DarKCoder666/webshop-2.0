@@ -2,6 +2,8 @@
  * Cookie utilities for debugging and handling authentication cookies
  */
 
+import { getApiUrl } from './env';
+
 export function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
   
@@ -65,7 +67,7 @@ export function checkCorsAndCookieCompatibility(): void {
   corsCheckDone = true;
   
   const currentDomain = window.location.hostname;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = getApiUrl();
   
   console.log('🔍 CORS & Cookie Compatibility Check:');
   console.log('Frontend domain:', currentDomain);

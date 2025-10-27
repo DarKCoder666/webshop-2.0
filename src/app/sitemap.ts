@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getAllLayouts, getWebsiteProducts, getWebsiteProductCategories } from '@/api/webshop-api';
+import { getBaseUrl } from '@/lib/env';
 import fs from 'fs';
 import path from 'path';
 
@@ -7,7 +8,7 @@ export const runtime = 'nodejs';
 export const revalidate = 3600; // refresh sitemap at most once per hour automatically
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yourwebsite.com';
+  const baseUrl = getBaseUrl();
   
   try {
     const layouts = await getAllLayouts();
