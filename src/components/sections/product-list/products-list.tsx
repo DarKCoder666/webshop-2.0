@@ -44,8 +44,8 @@ function convertProductToCardData(product: Product, categoriesMap: Record<string
   
   // Use product image or first available variation image (scan all variations), or null for placeholder
   const variationWithImage = product.variations.find((v) => Array.isArray(v.images) && v.images.length > 0);
-  const imageSrc = product.image?.url || 
-                   variationWithImage?.images?.[0]?.url || 
+  const imageSrc = product.image?.image.smallUrl || 
+                   variationWithImage?.images?.[0]?.image.smallUrl || 
                    null; // Use null to trigger placeholder
   
   // Get category name from map or use fallback

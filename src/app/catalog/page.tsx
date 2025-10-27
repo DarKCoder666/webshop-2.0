@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useMemo, useState, useEffect, useRef } from "react";
 import ProductsList from "@/components/sections/product-list/products-list";
 import { useProductAttributes, useProductCategories, useProductPriceRange, useProducts } from "@/queries/products";
@@ -11,7 +11,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { t } from "@/lib/i18n";
 
-export default function CatalogPage() {
+function CatalogPageContent() {
   const { data: categoriesData } = useProductCategories();
   const { data: priceRange } = useProductPriceRange();
   const { data: attributesData } = useProductAttributes();
@@ -432,4 +432,11 @@ export default function CatalogPage() {
   );
 }
 
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-6 md:px-10 lg:px-16 py-10">{t('loading')}</div>}>
+      <CatalogPageContent />
+    </Suspense>
+  );
+}
 

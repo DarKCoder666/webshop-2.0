@@ -112,7 +112,7 @@ export type MorphingDialogTriggerProps = {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  triggerRef?: React.RefObject<HTMLButtonElement>;
+  triggerRef?: React.RefObject<HTMLButtonElement | null>;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 

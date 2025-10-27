@@ -16,7 +16,7 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
   const allImages = [
     product.image,
     ...product.variations.flatMap(variation => variation.images)
-  ].filter(Boolean); // Remove any null/undefined images
+  ].filter((img): img is NonNullable<typeof img> => img != null); // Remove any null/undefined images
 
   const hasImages = allImages.length > 0;
   const selectedImage = hasImages ? allImages[selectedImageIndex] : null;
@@ -51,7 +51,7 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
                     className="relative w-full h-full"
                   >
                     <Image
-                      src={selectedImage.url}
+                      src={selectedImage.image.bigUrl}
                       alt={product.name}
                       fill
                       className="object-cover"
@@ -99,7 +99,7 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
                     )}
                   >
                     <Image
-                      src={image.url}
+                      src={image.image.smallUrl}
                       alt={`${product.name} ${index + 1}`}
                       fill
                       className="object-cover"

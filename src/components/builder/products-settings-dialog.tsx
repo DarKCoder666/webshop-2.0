@@ -344,7 +344,7 @@ export function ProductsSettingsDialog({ block, onSave }: ProductsSettingsDialog
                           const firstVariation = product.variations?.[0];
                           const price = firstVariation?.discountPrice || firstVariation?.price || 0;
                           const variationWithImage = (product.variations || []).find(v => Array.isArray(v.images) && v.images.length > 0);
-                          const imageSrc = product.image?.url || variationWithImage?.images?.[0]?.url;
+                          const imageSrc = product.image?.image.smallUrl || variationWithImage?.images?.[0]?.image.smallUrl;
                           const isSelected = customProductIds.includes(product._id);
                           
                           return (
@@ -421,7 +421,7 @@ export function ProductsSettingsDialog({ block, onSave }: ProductsSettingsDialog
                         const firstVariation = product?.variations?.[0];
                         const price = firstVariation?.discountPrice || firstVariation?.price || 0;
                         const variationWithImage = (product?.variations || []).find(v => Array.isArray(v.images) && v.images.length > 0);
-                        const imageSrc = product?.image?.url || variationWithImage?.images?.[0]?.url;
+                        const imageSrc = product?.image?.image.smallUrl || variationWithImage?.images?.[0]?.image.smallUrl;
                         const isLoading = selectedProductsLoading && !product;
                         
                         return (

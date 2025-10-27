@@ -661,8 +661,13 @@ export function setShopId(shopId: string): void {
 // Products API Types
 export interface ProductImage {
   _id: string;
-  url: string;
+  createdAt: string;
   filename: string;
+  image: {
+    _id: string;
+    bigUrl: string;
+    smallUrl: string;
+  }
 }
 
 export interface ProductCategory {

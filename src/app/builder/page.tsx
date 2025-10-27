@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { RenderBlock } from "@/components/builder/block-registry";
 import { BlockType, SiteConfig } from "@/lib/builder-types";
 import { loadSiteConfig, saveSiteConfig, addBlock, reorderBlocks, removeBlock, getAllLayouts, updateLayout, addBlockToLayout, reorderBlocksInLayout, removeBlockFromLayout } from "@/api/webshop-api";
@@ -24,7 +24,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 
 
-export default function BuilderPage() {
+function BuilderPageContent() {
   const [config, setConfig] = React.useState<SiteConfig | null>(null);
   const [selectedType, setSelectedType] = React.useState<BlockType>("heroSection");
   const [currentPageType, setCurrentPageType] = React.useState<string>("home");
@@ -425,6 +425,14 @@ export default function BuilderPage() {
       </div>
     </BuilderProvider>
     </AuthGuard>
+  );
+}
+
+export default function BuilderPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">{t('loading')}</div>}>
+      <BuilderPageContent />
+    </Suspense>
   );
 }
 
