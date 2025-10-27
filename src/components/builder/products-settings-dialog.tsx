@@ -343,7 +343,8 @@ export function ProductsSettingsDialog({ block, onSave }: ProductsSettingsDialog
                         {availableProducts.map((product) => {
                           const firstVariation = product.variations?.[0];
                           const price = firstVariation?.discountPrice || firstVariation?.price || 0;
-                          const imageSrc = product.image?.url || firstVariation?.images?.[0]?.url;
+                          const variationWithImage = (product.variations || []).find(v => Array.isArray(v.images) && v.images.length > 0);
+                          const imageSrc = product.image?.url || variationWithImage?.images?.[0]?.url;
                           const isSelected = customProductIds.includes(product._id);
                           
                           return (
@@ -419,7 +420,8 @@ export function ProductsSettingsDialog({ block, onSave }: ProductsSettingsDialog
                         const product = availableProducts.find(p => p._id === productId);
                         const firstVariation = product?.variations?.[0];
                         const price = firstVariation?.discountPrice || firstVariation?.price || 0;
-                        const imageSrc = product?.image?.url || firstVariation?.images?.[0]?.url;
+                        const variationWithImage = (product?.variations || []).find(v => Array.isArray(v.images) && v.images.length > 0);
+                        const imageSrc = product?.image?.url || variationWithImage?.images?.[0]?.url;
                         const isLoading = selectedProductsLoading && !product;
                         
                         return (
