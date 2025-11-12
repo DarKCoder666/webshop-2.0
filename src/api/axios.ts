@@ -4,11 +4,19 @@ import { getApiUrl } from "@/lib/env";
 import http from 'http';
 import https from 'https';
 
-const apiUrl = getApiUrl();
-
 // Axios retry configuration
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
+
+// Cache for API URL to avoid multiple evaluations
+let cachedApiUrl: string | null = null;
+
+function getCachedApiUrl(): string {
+  if (!cachedApiUrl) {
+    cachedApiUrl = getApiUrl();
+  }
+  return cachedApiUrl;
+}
 
 // Create HTTP agents for keep-alive connections (only on server-side)
 const httpAgent = typeof window === 'undefined' ? new http.Agent({
@@ -28,7 +36,7 @@ const httpsAgent = typeof window === 'undefined' ? new https.Agent({
 
 const instance = axios.create({
   withCredentials: true,
-  baseURL: `${apiUrl}/v1/`,
+  // Don't set baseURL here - it will be set lazily in the request interceptor
   headers: {
     'Content-Type': 'application/json',
   },
@@ -45,6 +53,13 @@ const instance = axios.create({
 // Request interceptor to ensure credentials are always sent
 instance.interceptors.request.use(
   function (config) {
+    // Lazily set the baseURL on each request to avoid module-level evaluation
+    // This prevents DYNAMIC_SERVER_USAGE errors in production
+    if (!config.baseURL) {
+      const apiUrl = getCachedApiUrl();
+      config.baseURL = `${apiUrl}/v1/`;
+    }
+    
     // Ensure withCredentials is set for every request
     config.withCredentials = true;
     

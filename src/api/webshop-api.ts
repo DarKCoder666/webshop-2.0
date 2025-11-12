@@ -25,7 +25,15 @@ export interface WebshopLayoutsResponse {
 }
 
 // Default shopId - in a real app this would come from user session/context
-const DEFAULT_SHOP_ID = getShopId();
+// Using lazy evaluation to avoid module-level evaluation issues in production
+let cachedShopId: string | null = null;
+function getDefaultShopId(): string {
+  if (cachedShopId === null) {
+    cachedShopId = getShopId();
+  }
+  return cachedShopId;
+}
+
 const HOME_PAGE_TYPE = 'home';
 
 /**
@@ -33,7 +41,7 @@ const HOME_PAGE_TYPE = 'home';
  */
 export async function loadSiteConfig(): Promise<SiteConfig> {
   try {
-    const layouts = await fetchAllLayoutsInternal(DEFAULT_SHOP_ID);
+    const layouts = await fetchAllLayoutsInternal(getDefaultShopId());
     
     // Find the home page configuration
     const homeLayout = layouts.find(layout => layout.pageType === HOME_PAGE_TYPE);
@@ -59,7 +67,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
     // First, try to get existing home layout
     const response = await axiosInstance.get<WebshopLayoutsResponse>(`webshop/layouts`, {
       params: {
-        shopId: DEFAULT_SHOP_ID,
+        shopId: getDefaultShopId(),
         pageType: HOME_PAGE_TYPE,
         limit: 1,
         page: 1
@@ -78,7 +86,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
     } else {
       // Create new layout
       const createResponse = await axiosInstance.post<WebshopLayout>(`webshop/layouts`, {
-        shopId: DEFAULT_SHOP_ID,
+        shopId: getDefaultShopId(),
         pageType: HOME_PAGE_TYPE,
         config,
         isActive: true
@@ -240,7 +248,7 @@ async function fetchAllLayoutsInternal(shopId: string): Promise<WebshopLayout[]>
  */
 export async function getAllLayouts(shopId?: string): Promise<WebshopLayout[]> {
   try {
-    return await fetchAllLayoutsInternal(shopId || DEFAULT_SHOP_ID);
+    return await fetchAllLayoutsInternal(shopId || getDefaultShopId());
   } catch (error) {
     console.error('Failed to get all layouts:', error);
     // Return empty array as fallback to prevent page crashes
@@ -277,7 +285,7 @@ export async function createLayout(
       isActive: boolean;
       pageName?: string;
     } = {
-      shopId: DEFAULT_SHOP_ID,
+      shopId: getDefaultShopId(),
       pageType,
       config,
       isActive: true
@@ -662,7 +670,7 @@ export function getDefaultSiteConfig(): SiteConfig {
  * Get current shop ID (in a real app this would come from auth context)
  */
 export function getCurrentShopId(): string {
-  return DEFAULT_SHOP_ID;
+  return getDefaultShopId();
 }
 
 /**
@@ -775,7 +783,7 @@ export async function getWebsiteProducts(params: {
     const queryParams = new URLSearchParams();
     
     // Use provided shopId or default
-    queryParams.set('shopId', params.shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', params.shopId || getDefaultShopId());
     
     if (params.sortBy) queryParams.set('sortBy', params.sortBy);
     if (params.limit) queryParams.set('limit', params.limit.toString());
@@ -830,7 +838,7 @@ export async function getWebsiteProducts(params: {
 export async function getWebsiteProduct(productId: string, shopId?: string): Promise<Product> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', shopId || getDefaultShopId());
 
     const response = await axiosInstance.get<Product>(`webshop/products/${productId}?${queryParams}`);
     return response.data;
@@ -846,7 +854,7 @@ export async function getWebsiteProduct(productId: string, shopId?: string): Pro
 export async function getWebsitePriceRange(shopId?: string): Promise<PriceRange> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', shopId || getDefaultShopId());
 
     const response = await axiosInstance.get<PriceRange>(`webshop/price-range?${queryParams}`);
     return response.data;
@@ -862,7 +870,7 @@ export async function getWebsitePriceRange(shopId?: string): Promise<PriceRange>
 export async function getWebsiteProductAttributes(shopId?: string): Promise<ProductAttribute[]> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', shopId || getDefaultShopId());
 
     const response = await axiosInstance.get<ProductAttribute[]>(`webshop/attributes?${queryParams}`);
     return response.data;
@@ -878,7 +886,7 @@ export async function getWebsiteProductAttributes(shopId?: string): Promise<Prod
 export async function getWebsiteProductCategories(params?: { shopId?: string; page?: number; limit?: number }): Promise<ProductCategoriesResponse> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', params?.shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', params?.shopId || getDefaultShopId());
     if (params?.page) queryParams.set('page', String(params.page));
     if (params?.limit) queryParams.set('limit', String(params.limit));
 
@@ -926,7 +934,7 @@ export interface WebshopSettings {
 export async function getWebshopSettings(shopId?: string): Promise<WebshopSettings> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', shopId || getDefaultShopId());
 
     const response = await axiosInstance.get<WebshopSettings>(`webshop/settings?${queryParams}`);
     return response.data;
@@ -974,7 +982,7 @@ export interface GlobalSettings {
 export async function getWebshopGlobalSettings(shopId?: string): Promise<GlobalSettings> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', shopId || getDefaultShopId());
 
     const response = await axiosInstance.get<GlobalSettings>(`webshop/global-settings?${queryParams}`);
     return response.data;
@@ -1019,7 +1027,7 @@ export async function placeOrder(
   payload: Omit<PlaceOrderPayload, 'shopId'> & { shopId?: string }
 ): Promise<PlaceOrderResponse> {
   const finalPayload: PlaceOrderPayload = {
-    shopId: payload.shopId || DEFAULT_SHOP_ID,
+    shopId: payload.shopId || getDefaultShopId(),
     orderItems: payload.orderItems,
     userData: payload.userData,
   };
@@ -1036,7 +1044,7 @@ export async function updateWebshopGlobalSettings(
 ): Promise<GlobalSettings> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', shopId || getDefaultShopId());
 
     const response = await axiosInstance.patch<GlobalSettings>(
       `webshop/global-settings?${queryParams}`,
@@ -1080,7 +1088,7 @@ export interface WebshopImagesListResponse {
 export async function uploadWebshopImage(file: File, shopId?: string): Promise<WebshopImage> {
   const form = new FormData();
   form.append('image', file);
-  form.append('shopId', shopId || DEFAULT_SHOP_ID);
+  form.append('shopId', shopId || getDefaultShopId());
 
   const response = await axiosInstance.post<WebshopImage>(`webshop/uploads/image`, form, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -1099,7 +1107,7 @@ export async function getWebshopImagesList(params: {
 } = {}): Promise<WebshopImagesListResponse> {
   try {
     const queryParams = new URLSearchParams();
-    queryParams.set('shopId', params.shopId || DEFAULT_SHOP_ID);
+    queryParams.set('shopId', params.shopId || getDefaultShopId());
     
     if (params.limit) queryParams.set('limit', params.limit.toString());
     if (params.page) queryParams.set('page', params.page.toString());
@@ -1125,7 +1133,7 @@ export async function getWebshopImages(params: {
 }): Promise<WebshopImage[]> {
   try {
     const query = new URLSearchParams();
-    query.set('shopId', params.shopId || DEFAULT_SHOP_ID);
+    query.set('shopId', params.shopId || getDefaultShopId());
     query.set('imagesId', params.imagesId);
 
     const response = await axiosInstance.get<WebshopImage[]>(`webshop/uploads/images?${query}`);

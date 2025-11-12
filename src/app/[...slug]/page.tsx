@@ -12,10 +12,19 @@ interface PageProps {
 // Helper function to safely get layouts with error handling
 async function safeGetAllLayouts(): Promise<WebshopLayout[]> {
   try {
+    console.log('[safeGetAllLayouts] Fetching all layouts from API...');
     const layouts = await getAllLayouts();
+    console.log(`[safeGetAllLayouts] Successfully fetched ${layouts.length} layouts`);
     return layouts;
   } catch (error) {
-    console.error('Error fetching layouts:', error);
+    console.error('[safeGetAllLayouts] Error fetching layouts:', error);
+    if (error instanceof Error) {
+      console.error('[safeGetAllLayouts] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+    }
     // Return empty array instead of throwing to prevent build/runtime failures
     return [];
   }
@@ -117,25 +126,40 @@ export default async function DynamicPage({ params }: PageProps) {
   const slug = resolvedParams.slug;
   const route = slug.join('/');
   
+  // Log the route being requested (helpful for debugging in production)
+  console.log(`[DynamicPage] Rendering route: ${route}`);
+  
   // Check if this is a system route that should be handled by dedicated pages
   const systemRoutes = ['login', 'builder', 'catalog', 'category'];
   if (slug.length === 1 && systemRoutes.includes(slug[0])) {
+    console.log(`[DynamicPage] System route detected, returning 404: ${route}`);
     notFound();
   }
   
   // Check if this is a product route - if so, let the product page handle it
   if (slug.length === 2 && slug[0] === 'product') {
     // This should be handled by the product/[id]/page.tsx
+    console.log(`[DynamicPage] Product route detected, returning 404: ${route}`);
     notFound();
   }
   
   try {
     const layouts = await safeGetAllLayouts();
     
+    console.log(`[DynamicPage] Fetched ${layouts.length} layouts from API`);
+    
     if (layouts.length === 0) {
-      console.error('No layouts available for dynamic page rendering');
+      console.error('[DynamicPage] No layouts available for dynamic page rendering');
       notFound();
     }
+    
+    // Log available routes for debugging
+    const availableRoutes = layouts.map(l => ({
+      pageType: l.pageType,
+      route: l.config?.route,
+      pageName: l.pageName
+    }));
+    console.log('[DynamicPage] Available routes:', JSON.stringify(availableRoutes, null, 2));
     
     // First try to find by pageType (for backward compatibility)
     let layout = layouts.find(l => l.pageType === route);
@@ -146,13 +170,22 @@ export default async function DynamicPage({ params }: PageProps) {
     }
     
     if (!layout) {
-      console.warn(`No layout found for route: ${route}`);
+      console.error(`[DynamicPage] No layout found for route: ${route}`);
+      console.error(`[DynamicPage] Tried matching against ${layouts.length} layouts`);
       notFound();
     }
 
+    console.log(`[DynamicPage] Successfully found layout for route: ${route}`);
     return <DynamicPageClient config={layout.config} />;
   } catch (error) {
-    console.error('Failed to load page:', error);
+    console.error('[DynamicPage] Failed to load page:', error);
+    if (error instanceof Error) {
+      console.error('[DynamicPage] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+    }
     notFound();
   }
 }
