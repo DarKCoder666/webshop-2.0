@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,14 +15,13 @@ export default function LoginPage() {
   });
   
   const { login, isLoading, error, isAuthenticated, clearError } = useAuthStore();
-  const router = useRouter();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/builder');
+      window.location.href = '/';
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   // Debug cookies and CORS on component mount
   useEffect(() => {
@@ -34,12 +32,12 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Clear error when credentials change
+  // Clear error when credentials change (but not while loading)
   useEffect(() => {
-    if (error) {
+    if (error && !isLoading) {
       clearError();
     }
-  }, [credentials.login, credentials.password, clearError, error]);
+  }, [credentials.login, credentials.password, clearError, error, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,18 +51,18 @@ export default function LoginPage() {
     
     const success = await login(credentials);
     
+    console.log('Login result:', success);
+    
     if (success) {
-      console.log('✅ Login successful!');
+      console.log('✅ Login successful! Redirecting to home page...');
       debugCookies(); // Check cookies after login
       
-      // Small delay to ensure cookies are processed
-      setTimeout(() => {
-        console.log('🔄 Redirecting to builder...');
-        router.replace('/builder');
-      }, 500);
+      // Redirect to home page immediately with full page reload
+      window.location.href = '/';
     } else {
       console.log('❌ Login failed');
       debugCookies(); // Check what cookies we have after failed login
+      // Error is already set in the auth store, will be displayed below
     }
   };
 
@@ -100,7 +98,7 @@ export default function LoginPage() {
                 </AnimatedGroup>
               </div>
 
-              <AnimatedGroup preset="blur" as="p" className="text-base leading-7 text-muted-foreground md:text-lg">
+              <AnimatedGroup preset="blur" as="p" asChild="span" className="text-base leading-7 text-muted-foreground md:text-lg">
                 Sign in to access the website builder and manage your content, layouts, and settings.
               </AnimatedGroup>
             </div>

@@ -15,7 +15,8 @@ import { LanguageSwitcher } from '@/components/sections/header/language-switcher
 import { t, useI18n } from '@/lib/i18n'
 import type { LanguageCode } from '@/lib/stores/language-store'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { Settings } from 'lucide-react'
+import { Settings, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
     const [menuState, setMenuState] = React.useState(false)
@@ -33,7 +34,8 @@ export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
     const [navLogoText, setNavLogoText] = React.useState<string>('Your Logo')
     const [navShowCartIcon, setNavShowCartIcon] = React.useState<boolean>(true)
     const [navMenuItems, setNavMenuItems] = React.useState<Array<{ name: string; href: string }>>([])
-    const { isAuthenticated, checkAuth } = useAuthStore()
+    const { isAuthenticated, checkAuth, logout } = useAuthStore()
+    const router = useRouter()
 
     useClickOutside(desktopCategoriesRef as React.RefObject<HTMLElement>, () => setDesktopCategoriesOpen(false))
 
@@ -227,13 +229,25 @@ export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
                             <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit md:items-center">
                                 <div className="flex items-center gap-4">
                                     {isAuthenticated && (
-                                        <Link
-                                            href="/builder"
-                                            className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                                        >
-                                            <Settings size={16} />
-                                            <span>Builder</span>
-                                        </Link>
+                                        <>
+                                            <Link
+                                                href="/builder"
+                                                className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                                            >
+                                                <Settings size={16} />
+                                                <span>Builder</span>
+                                            </Link>
+                                            <button
+                                                onClick={async () => {
+                                                    await logout()
+                                                    router.push('/')
+                                                }}
+                                                className="flex items-center gap-1.5 rounded-md bg-destructive px-3 py-1.5 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors"
+                                                title="Logout"
+                                            >
+                                                <LogOut size={16} />
+                                            </button>
+                                        </>
                                     )}
                                     {navShowCartIcon && <CartButtonWithDialog className="hidden lg:inline-flex" />}
                                     <LanguageSwitcher />
