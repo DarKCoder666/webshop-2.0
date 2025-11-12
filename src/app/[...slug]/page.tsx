@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { DynamicPageClient } from '@/components/dynamic-page-client';
-import { getAllLayouts } from '@/api/webshop-api';
+import { getAllLayouts, WebshopLayout } from '@/api/webshop-api';
 
 interface PageProps {
   params: Promise<{
@@ -9,10 +9,28 @@ interface PageProps {
   }>;
 }
 
+// Helper function to safely get layouts with error handling
+async function safeGetAllLayouts(): Promise<WebshopLayout[]> {
+  try {
+    const layouts = await getAllLayouts();
+    return layouts;
+  } catch (error) {
+    console.error('Error fetching layouts:', error);
+    // Return empty array instead of throwing to prevent build/runtime failures
+    return [];
+  }
+}
+
 // Generate static params for all pages
 export async function generateStaticParams() {
   try {
-    const layouts = await getAllLayouts();
+    const layouts = await safeGetAllLayouts();
+    
+    if (layouts.length === 0) {
+      console.warn('No layouts found for static params generation');
+      return [];
+    }
+    
     const systemRoutes = ['login', 'builder', 'catalog', 'category', 'product'];
     
     return layouts
@@ -41,7 +59,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const route = slug.join('/');
   
   try {
-    const layouts = await getAllLayouts();
+    const layouts = await safeGetAllLayouts();
+    
+    if (layouts.length === 0) {
+      console.warn('No layouts available for metadata generation');
+      return {
+        title: 'Page',
+        description: 'Page description'
+      };
+    }
     
     // First try to find by pageType (for backward compatibility)
     let layout = layouts.find(l => l.pageType === route);
@@ -104,7 +130,12 @@ export default async function DynamicPage({ params }: PageProps) {
   }
   
   try {
-    const layouts = await getAllLayouts();
+    const layouts = await safeGetAllLayouts();
+    
+    if (layouts.length === 0) {
+      console.error('No layouts available for dynamic page rendering');
+      notFound();
+    }
     
     // First try to find by pageType (for backward compatibility)
     let layout = layouts.find(l => l.pageType === route);
@@ -115,6 +146,7 @@ export default async function DynamicPage({ params }: PageProps) {
     }
     
     if (!layout) {
+      console.warn(`No layout found for route: ${route}`);
       notFound();
     }
 

@@ -4,7 +4,7 @@ const path = require('path');
 const axios = require('axios');
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-const shopId = process.env.NEXT_PUBLIC_SHOP_ID || '60f7b3b3b3b3b3b3b3b3b3b3';
+const shopId = process.env.NEXT_PUBLIC_SHOP_ID || '';
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yourwebsite.com';
 
 if (!apiUrl) {

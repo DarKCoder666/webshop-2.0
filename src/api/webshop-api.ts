@@ -2,6 +2,7 @@ import { SiteConfig, BlockInstance, BlockType } from '@/lib/builder-types';
 import { getSchema } from '@/components/builder/block-registry';
 import axiosInstance from './axios';
 import { getShopId } from '@/lib/env';
+import { unstable_cache } from 'next/cache';
 
 // New types to match the backend API
 export interface WebshopLayout {
@@ -29,32 +30,39 @@ const DEFAULT_SHOP_ID = getShopId();
 const HOME_PAGE_TYPE = 'home';
 
 /**
- * Load site configuration from the backend
+ * Load site configuration from the backend with caching
  */
-export async function loadSiteConfig(): Promise<SiteConfig> {
-  try {
-    const response = await axiosInstance.get<WebshopLayout[]>(`webshop/layouts/all`, {
-      params: { shopId: DEFAULT_SHOP_ID }
-    });
-    
-    // Find the home page configuration
-    const homeLayout = response.data.find(layout => layout.pageType === HOME_PAGE_TYPE);
-    
-    if (homeLayout) {
-      return homeLayout.config;
-    } else {
-      // Return default config if no home page found
+export const loadSiteConfig = unstable_cache(
+  async (): Promise<SiteConfig> => {
+    try {
+      const layouts = await fetchAllLayoutsInternal(DEFAULT_SHOP_ID);
+      
+      // Find the home page configuration
+      const homeLayout = layouts.find(layout => layout.pageType === HOME_PAGE_TYPE);
+      
+      if (homeLayout) {
+        return homeLayout.config;
+      } else {
+        // Return default config if no home page found
+        return getDefaultSiteConfig();
+      }
+    } catch (error) {
+      console.error('Failed to load site config:', error);
+      // Return default config on error
       return getDefaultSiteConfig();
     }
-  } catch (error) {
-    console.error('Failed to load site config:', error);
-    // Return default config on error
-    return getDefaultSiteConfig();
+  },
+  ['site-config'],
+  {
+    revalidate: 60,
+    tags: ['layouts', 'site-config'],
   }
-}
+);
 
 /**
  * Save site configuration to the backend
+ * Note: Cache will automatically revalidate after 60 seconds
+ * For immediate updates, use revalidateLayoutsCache() server action
  */
 export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
   try {
@@ -68,6 +76,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       }
     });
     
+    let result: SiteConfig;
     if (response.data.results.length > 0) {
       // Update existing layout
       const existingLayout = response.data.results[0];
@@ -75,7 +84,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
         `webshop/layouts/${existingLayout._id}`,
         { config }
       );
-      return updateResponse.data.config;
+      result = updateResponse.data.config;
     } else {
       // Create new layout
       const createResponse = await axiosInstance.post<WebshopLayout>(`webshop/layouts`, {
@@ -84,8 +93,10 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
         config,
         isActive: true
       });
-      return createResponse.data.config;
+      result = createResponse.data.config;
     }
+    
+    return result;
   } catch (error) {
     console.error('Failed to save site config:', error);
     throw new Error('Failed to save configuration');
@@ -220,19 +231,40 @@ export async function removeBlockFromLayout(
 }
 
 /**
- * Get all layouts for the current shop
+ * Internal function to fetch layouts without caching
  */
-export async function getAllLayouts(): Promise<WebshopLayout[]> {
+async function fetchAllLayoutsInternal(shopId: string): Promise<WebshopLayout[]> {
   try {
     const response = await axiosInstance.get<WebshopLayout[]>(`webshop/layouts/all`, {
-      params: { shopId: DEFAULT_SHOP_ID }
+      params: { shopId }
     });
     return response.data;
   } catch (error) {
     console.error('Failed to get all layouts:', error);
-    return [];
+    throw error; // Throw error so cache knows the request failed
   }
 }
+
+/**
+ * Get all layouts for the current shop with caching
+ * Cache is invalidated after 60 seconds to ensure fresh data
+ */
+export const getAllLayouts = unstable_cache(
+  async (shopId?: string): Promise<WebshopLayout[]> => {
+    try {
+      return await fetchAllLayoutsInternal(shopId || DEFAULT_SHOP_ID);
+    } catch (error) {
+      console.error('Failed to get all layouts:', error);
+      // Return empty array as fallback to prevent page crashes
+      return [];
+    }
+  },
+  ['all-layouts'], // Cache key
+  {
+    revalidate: 60, // Revalidate every 60 seconds
+    tags: ['layouts'], // Tags for cache invalidation
+  }
+);
 
 /**
  * Get a specific layout by ID
@@ -249,6 +281,7 @@ export async function getLayoutById(layoutId: string): Promise<WebshopLayout | n
 
 /**
  * Create a new layout for a specific page type
+ * Note: Cache will automatically revalidate after 60 seconds
  */
 export async function createLayout(
   pageType: string,
@@ -283,6 +316,7 @@ export async function createLayout(
 
 /**
  * Update an existing layout
+ * Note: Cache will automatically revalidate after 60 seconds
  */
 export async function updateLayout(
   layoutId: string,
@@ -299,6 +333,7 @@ export async function updateLayout(
 
 /**
  * Delete a layout
+ * Note: Cache will automatically revalidate after 60 seconds
  */
 export async function deleteLayout(layoutId: string): Promise<void> {
   try {
