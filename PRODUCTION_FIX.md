@@ -38,7 +38,10 @@ When Next.js tries to perform server-side rendering or static generation in prod
 
 ## Solution
 
-We implemented **lazy evaluation** for both the API URL and Shop ID to ensure they're only evaluated when actually needed, not at module initialization time.
+We implemented **two critical fixes**:
+
+1. **Lazy evaluation** for both the API URL and Shop ID to ensure they're only evaluated when actually needed
+2. **Force dynamic rendering** for all pages that use runtime environment variables
 
 ### Changes Made
 

@@ -5,6 +5,9 @@ import { getAllLayouts, getWebsiteProduct } from '@/api/webshop-api';
 import { Product } from '@/lib/product-types';
 import { SiteConfig } from '@/lib/builder-types';
 
+// Force dynamic rendering to support runtime environment variables
+export const dynamic = 'force-dynamic';
+
 interface ProductPageProps {
   params: Promise<{
     id: string;

@@ -7,6 +7,9 @@ import Footer from "@/components/sections/footer/footer";
 import { getAllLayouts } from "@/api/webshop-api";
 import { PublicEnvScript } from 'next-runtime-env';
 
+// Force dynamic rendering to support runtime environment variables
+export const dynamic = 'force-dynamic';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

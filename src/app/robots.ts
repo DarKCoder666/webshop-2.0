@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import { getBaseUrl } from '@/lib/env';
 
+export const dynamic = 'force-dynamic'; // Required for runtime env vars
+
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = getBaseUrl();
   

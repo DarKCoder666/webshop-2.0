@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 import { getAllLayouts, getDefaultSiteConfig } from "@/api/webshop-api";
 import { DynamicPageClient } from '@/components/dynamic-page-client';
 
+// Force dynamic rendering to support runtime environment variables
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   try {
     // Get all layouts to check if home page exists

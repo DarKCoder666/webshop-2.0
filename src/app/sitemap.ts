@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic'; // Required for runtime env vars
 export const revalidate = 3600; // refresh sitemap at most once per hour automatically
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
