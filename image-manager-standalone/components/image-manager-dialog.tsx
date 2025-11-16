@@ -45,11 +45,12 @@ export function ImageManagerDialog({
   // When dialog opens with a preselected image (single-select), the ImageManager
   // may immediately call onSelectionChange. Ignore that first callback so the dialog
   // doesn't auto-close on open when a value like "/billy.svg" is prefilled.
+  // Only apply this for single-select mode (maxImages === 1)
   useEffect(() => {
-    if (showImageManager) {
+    if (showImageManager && maxImages === 1) {
       ignoreInitialCallbackRef.current = true
     }
-  }, [showImageManager])
+  }, [showImageManager, maxImages])
 
   const handleImageSelection = (selectedImages: ImageData[]) => {
     // Defer to avoid parent state updates during child render

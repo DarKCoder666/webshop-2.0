@@ -64,7 +64,18 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                   <input
                     type="checkbox"
                     checked={supportsDarkMode}
-                    onChange={(e) => onThemeConfigChange({ supportsDarkMode: e.target.checked })}
+                    onChange={(e) => {
+                      // When enabling dark mode support, reset to light mode as default
+                      // When disabling, keep current defaultMode or use light if none set
+                      const updates: Partial<SiteConfig['theme']> = {
+                        supportsDarkMode: e.target.checked
+                      };
+                      // Only set defaultMode when enabling dark mode support
+                      if (e.target.checked) {
+                        updates.defaultMode = 'light';
+                      }
+                      onThemeConfigChange(updates);
+                    }}
                     className="rounded border-border text-primary focus:ring-primary"
                   />
                   <span className="text-sm text-card-foreground">{t('enable_dark_light_switching')}</span>
@@ -81,7 +92,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                           name="defaultMode"
                           value="light"
                           checked={defaultMode === 'light'}
-                          onChange={() => onThemeConfigChange({ defaultMode: 'light' })}
+                          onChange={() => onThemeConfigChange({ defaultMode: 'light', supportsDarkMode: false })}
                           className="text-primary focus:ring-primary"
                         />
                         <Sun className="h-3 w-3" />
@@ -93,7 +104,7 @@ export function ThemeSettingsDialog({ config, onThemeChange, onThemeConfigChange
                           name="defaultMode"
                           value="dark"
                           checked={defaultMode === 'dark'}
-                          onChange={() => onThemeConfigChange({ defaultMode: 'dark' })}
+                          onChange={() => onThemeConfigChange({ defaultMode: 'dark', supportsDarkMode: false })}
                           className="text-primary focus:ring-primary"
                         />
                         <Moon className="h-3 w-3" />

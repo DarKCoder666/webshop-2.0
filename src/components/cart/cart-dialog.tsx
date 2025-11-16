@@ -34,9 +34,9 @@ export function CartButtonWithDialog({
     <MorphingDialog>
       <MorphingDialogTrigger className={className}>
         <div className="relative">
-          <Button asChild variant="ghost" size="sm" className="relative">
+          <Button asChild variant="ghost" size="sm" className="relative p-0">
             <span className="relative inline-flex">
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="size-6" />
               {itemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {itemCount > 99 ? '99+' : itemCount}

@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Heart, Plus, Check } from "lucide-react";
+import { Heart, Plus, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ProductPlaceholder from "@/components/sections/product-list/product-placeholder";
 import type { ProductCardData } from "@/components/sections/product-list/product-card";
@@ -121,24 +122,43 @@ function AddAnimatedButton({ onClick, className, label, addedLabel }: { onClick?
 
 export function ProductCardV2({ product, className, onToggleFavorite, imageAspect = '4:3' }: BaseProps) {
   const { settings } = useWebshopSettings();
+  const router = useRouter();
   const [fav, setFav] = React.useState(!!product.favorite);
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const aspect = imageAspect === '1:1' ? 'aspect-square' : imageAspect === '3:4' ? 'aspect-[3/4]' : imageAspect === '4:3' ? 'aspect-[4/3]' : imageAspect === '9:16' ? 'aspect-[9/16]' : 'aspect-[16/9]';
+  
+  const handleProductClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push(`/product/${product.id}`);
+  };
+
   return (
-    <motion.div className={cn("group overflow-hidden rounded-xl border border-border bg-card", className)} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-      <div className={cn("relative", aspect)}>
+    <motion.div className={cn("group overflow-hidden rounded-xl border border-border bg-card", isNavigating && "opacity-60 pointer-events-none", className)} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+      <a href={`/product/${product.id}`} onClick={handleProductClick} className="block">
+        <div className={cn("relative", aspect)}>
         {product.imageSrc ? (
           <img src={product.imageSrc} alt={product.title} className="h-full w-full object-cover" />
         ) : (
           <ProductPlaceholder className="h-full w-full" />
         )}
-        <button onClick={() => { const n = !fav; setFav(n); onToggleFavorite?.(product.id, n); }} className="absolute left-4 top-4 rounded-full bg-card/90 p-2 text-card-foreground shadow ring-1 ring-border">
+        <button 
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); const n = !fav; setFav(n); onToggleFavorite?.(product.id, n); }} 
+          className="absolute left-4 top-4 rounded-full bg-card/90 p-2 text-card-foreground shadow ring-1 ring-border z-10"
+        >
           <Heart className={cn("h-5 w-5", fav && "fill-current text-destructive")}/>
         </button>
         <div className="absolute bottom-4 left-4 rounded-full bg-card/90 px-3 py-1 text-xs font-medium ring-1 ring-border">{product.category}</div>
-      </div>
-      <div className="flex items-center justify-between px-4 py-3 gap-3">
+        {isNavigating && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+        </div>
+      </a>
+      <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-3 gap-2">
         <div className="min-w-0">
-          <div className="font-semibold">{product.title}</div>
+          <div className="font-semibold text-sm md:text-base">{product.title}</div>
           <div className="text-xs text-muted-foreground">
             {product.discountPrice ? (
               <div className="space-x-2">
@@ -167,25 +187,44 @@ export function ProductCardV2({ product, className, onToggleFavorite, imageAspec
 
 export function ProductCardV3({ product, className, onToggleFavorite, imageAspect = '3:4' }: BaseProps) {
   const { settings } = useWebshopSettings();
+  const router = useRouter();
   const [fav, setFav] = React.useState(!!product.favorite);
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const aspect = imageAspect === '1:1' ? 'aspect-square' : imageAspect === '3:4' ? 'aspect-[3/4]' : imageAspect === '4:3' ? 'aspect-[4/3]' : imageAspect === '9:16' ? 'aspect-[9/16]' : 'aspect-[16/9]';
+  
+  const handleProductClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push(`/product/${product.id}`);
+  };
+
   return (
-    <motion.div className={cn("group overflow-hidden rounded-3xl bg-gradient-to-b from-card to-muted/20 border border-border h-full flex flex-col", className)} initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}>
-      <div className="p-4 h-full flex flex-col">
-        <div className={cn("relative overflow-hidden rounded-2xl", aspect)}>
+    <motion.div className={cn("group overflow-hidden rounded-3xl bg-gradient-to-b from-card to-muted/20 border border-border h-full flex flex-col", isNavigating && "opacity-60 pointer-events-none", className)} initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}>
+      <div className="p-3 md:p-4 h-full flex flex-col">
+        <a href={`/product/${product.id}`} onClick={handleProductClick} className="block">
+          <div className={cn("relative overflow-hidden rounded-2xl", aspect)}>
           {product.imageSrc ? (
             <img src={product.imageSrc} alt={product.title} className="h-full w-full object-cover" />
           ) : (
             <ProductPlaceholder className="h-full w-full" />
           )}
-          <button onClick={() => { const n = !fav; setFav(n); onToggleFavorite?.(product.id, n); }} className="absolute right-3 top-3 rounded-full bg-background/70 p-2 text-foreground shadow">
+          <button 
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); const n = !fav; setFav(n); onToggleFavorite?.(product.id, n); }} 
+            className="absolute right-3 top-3 rounded-full bg-background/70 p-2 text-foreground shadow z-10"
+          >
             <Heart className={cn("h-5 w-5", fav && "fill-current text-destructive")}/>
           </button>
-        </div>
-        <div className="mt-4 flex items-center justify-between">
+          {isNavigating && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20 rounded-2xl">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
+          </div>
+        </a>
+        <div className="mt-3 md:mt-4 flex items-center justify-between">
           <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">{product.category}</div>
-            <div className="text-lg font-semibold">{product.title}</div>
+            <div className="text-xs md:text-sm text-muted-foreground">{product.category}</div>
+            <div className="text-base md:text-lg font-semibold">{product.title}</div>
           </div>
           <div className="text-lg font-bold">
             {product.discountPrice ? (
@@ -217,11 +256,21 @@ export function ProductCardV3({ product, className, onToggleFavorite, imageAspec
 
 export function ProductCardV4({ product, className, onToggleFavorite, imageAspect = '16:9' }: BaseProps) {
   const { settings } = useWebshopSettings();
+  const router = useRouter();
   const [fav, setFav] = React.useState(!!product.favorite);
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const aspect = imageAspect === '1:1' ? 'aspect-square' : imageAspect === '3:4' ? 'aspect-[3/4]' : imageAspect === '4:3' ? 'aspect-[4/3]' : imageAspect === '9:16' ? 'aspect-[9/16]' : 'aspect-[16/9]';
+  
+  const handleProductClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push(`/product/${product.id}`);
+  };
+
   return (
-    <motion.div className={cn("group overflow-hidden rounded-xl border border-border bg-card h-full flex flex-col", className)} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-      <div className={cn("relative", aspect)}>
+    <motion.div className={cn("group overflow-hidden rounded-xl border border-border bg-card h-full flex flex-col", isNavigating && "opacity-60 pointer-events-none", className)} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+      <a href={`/product/${product.id}`} onClick={handleProductClick} className="block">
+        <div className={cn("relative", aspect)}>
         {product.imageSrc ? (
           <img src={product.imageSrc} alt={product.title} className="h-full w-full object-cover" />
         ) : (
@@ -245,11 +294,20 @@ export function ProductCardV4({ product, className, onToggleFavorite, imageAspec
             </div>
           </div>
         </div>
-        <button onClick={() => { const n = !fav; setFav(n); onToggleFavorite?.(product.id, n); }} className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-black shadow">
+        <button 
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); const n = !fav; setFav(n); onToggleFavorite?.(product.id, n); }} 
+          className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-black shadow z-10"
+        >
           <Heart className={cn("h-5 w-5", fav && "fill-current text-destructive")}/>
         </button>
-      </div>
-      <div className="p-4 mt-auto">
+        {isNavigating && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+        </div>
+      </a>
+      <div className="p-3 md:p-4 mt-auto">
         <QuickAddController productId={product.id} productTitle={product.title} productImageUrl={product.imageSrc}>
           {({ onClick, Dialog }) => (
             <>

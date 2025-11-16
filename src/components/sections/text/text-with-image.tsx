@@ -55,7 +55,7 @@ export default function TextWithImage({
 
   return (
     <section className={cn("relative", className)}>
-      <div className="container mx-auto px-6 md:px-10 lg:px-16 py-16 md:py-24">
+      <div className="container mx-auto px-4 md:px-10 lg:px-16 py-16 md:py-24">
         <div className={cn("grid grid-cols-1 items-center gap-10 md:grid-cols-2", imagePosition === 'left' ? 'md:[&>div:first-child]:order-1' : '')}>
           {/* Text column */}
           <div>

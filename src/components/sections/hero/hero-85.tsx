@@ -55,10 +55,10 @@ export default function Hero85({
     return duplicated.slice(0, 12);
   }, [images]);
   return (
-    <section className="py-0 md:py-16">
-      <div className="container mx-auto px-6 md:px-10 lg:px-16">
-        <div className="grid items-center gap-16 lg:grid-cols-2">
-          <div className="mx-auto w-full max-w-xl">
+    <section className="py-6 md:py-16">
+      <div className="container mx-auto px-4 md:px-10 lg:px-16">
+        <div className="grid items-center gap-8 lg:gap-16 lg:grid-cols-2">
+          <div className="w-full max-w-md lg:max-w-xl pr-4 md:pr-0">
             {/* Badge removed as requested */}
             {(title || isBuilder) && (
               isBuilder ? (
@@ -69,7 +69,7 @@ export default function Hero85({
                   onSave={updateBlockText}
                   isBuilder={isBuilder}
                   as="h1"
-                  className="mt-10 mb-4 text-3xl font-semibold lg:text-5xl"
+                  className="mb-3 text-2xl font-bold leading-tight sm:text-4xl lg:text-5xl"
                   placeholder="Enter title..."
                   style={getRichTextStyle(title)}
                 >
@@ -81,7 +81,7 @@ export default function Hero85({
                   as="h1"
                   per="word"
                   preset="fade"
-                  className="mt-10 mb-4 text-3xl font-semibold lg:text-5xl"
+                  className="mb-3 text-2xl font-bold leading-tight sm:text-4xl lg:text-5xl"
                 />
               )
             )}
@@ -94,7 +94,7 @@ export default function Hero85({
                   onSave={updateBlockText}
                   isBuilder={isBuilder}
                   as="p"
-                  className="mx-auto text-muted-foreground md:text-lg"
+                  className="text-sm leading-normal text-muted-foreground sm:text-base sm:leading-relaxed"
                   placeholder="Enter description..."
                   style={getRichTextStyle(description)}
                 >
@@ -106,12 +106,12 @@ export default function Hero85({
                   as="p"
                   per="word"
                   preset="fade"
-                  className="mx-auto text-muted-foreground md:text-lg"
+                  className="text-sm leading-normal text-muted-foreground sm:text-base sm:leading-relaxed"
                 />
               )
             )}
             {(primaryCtaLabel || secondaryCtaLabel || isBuilder) && (
-              <AnimatedGroup preset="slide" className="mt-10 flex flex-col gap-2 sm:flex-row">
+              <AnimatedGroup preset="slide" className="mt-5 flex flex-col gap-2.5 sm:flex-row sm:gap-3">
                 {(primaryCtaLabel || isBuilder) && (
                   isBuilder ? (
                     <EditableButton
@@ -121,7 +121,7 @@ export default function Hero85({
                       content={primaryCtaLabel as any}
                       onSave={updateBlockText}
                       isBuilder={isBuilder}
-                      className="w-full gap-2 sm:w-auto"
+                      className="w-full gap-2 sm:w-auto h-11 px-5 text-sm font-semibold sm:h-12 sm:px-6 sm:text-base"
                       placeholder="Primary button..."
                       style={{ 
                         variant: "default",
@@ -135,7 +135,7 @@ export default function Hero85({
                   ) : (
                     <RenderableButton 
                       content={primaryCtaLabel}
-                      className="w-full gap-2 sm:w-auto"
+                      className="w-full gap-2 sm:w-auto h-11 px-5 text-sm font-semibold sm:h-12 sm:px-6 sm:text-base"
                       variant="default"
                       size="lg"
                     />
@@ -150,7 +150,7 @@ export default function Hero85({
                       content={secondaryCtaLabel as any}
                       onSave={updateBlockText}
                       isBuilder={isBuilder}
-                      className="w-full gap-2 sm:w-auto"
+                      className="w-full gap-2 sm:w-auto h-11 px-5 text-sm font-semibold sm:h-12 sm:px-6 sm:text-base"
                       placeholder="Secondary button..."
                       style={{ 
                         variant: "outline",
@@ -164,7 +164,7 @@ export default function Hero85({
                   ) : (
                     <RenderableButton 
                       content={secondaryCtaLabel}
-                      className="w-full gap-2 sm:w-auto"
+                      className="w-full gap-2 sm:w-auto h-11 px-5 text-sm font-semibold sm:h-12 sm:px-6 sm:text-base"
                       variant="outline"
                       size="lg"
                     />
@@ -189,27 +189,29 @@ export default function Hero85({
             >
               {expandedImages.length > 0 ? (
                 <>
-                  <div key={`mobile-imgs-${expandedImages.map(i => i.src).join('|').slice(0, 50)}`} className="flex flex-col gap-4 lg:hidden w-screen -ml-6 overflow-hidden">
+                  {/* Mobile: Horizontal scrolling rows with enhanced sizing */}
+                  <div key={`mobile-imgs-${expandedImages.map(i => i.src).join('|').slice(0, 50)}`} className="flex flex-col gap-5 lg:hidden w-screen -ml-6 overflow-hidden">
                     <div className="overflow-hidden">
-                      <AutoScroll direction="horizontal" durationSec={28} className="w-full" contentClassName="gap-4 pl-6">
+                      <AutoScroll direction="horizontal" durationSec={25} className="w-full" contentClassName="gap-5 pl-6 pr-6">
                         {expandedImages.slice(0, 6).map((img, idx) => (
-                          <div key={`m-row1-${idx}`} className="w-72 shrink-0">
-                            <img src={img.src} alt={img.alt} className="h-48 w-full rounded-2xl object-cover" />
+                          <div key={`m-row1-${idx}`} className="w-[85vw] sm:w-96 shrink-0">
+                            <img src={img.src} alt={img.alt} className="h-[320px] sm:h-[400px] w-full rounded-3xl object-cover shadow-xl" />
                           </div>
                         ))}
                       </AutoScroll>
                     </div>
                     <div className="overflow-hidden">
-                      <AutoScroll direction="horizontal" reverse durationSec={28} className="w-full" contentClassName="gap-4 pl-6">
+                      <AutoScroll direction="horizontal" reverse durationSec={25} className="w-full" contentClassName="gap-5 pl-6 pr-6">
                         {expandedImages.slice(3, 9).map((img, idx) => (
-                          <div key={`m-row2-${idx}`} className="w-72 shrink-0">
-                            <img src={img.src} alt={img.alt} className="h-48 w-full rounded-2xl object-cover" />
+                          <div key={`m-row2-${idx}`} className="w-[85vw] sm:w-96 shrink-0">
+                            <img src={img.src} alt={img.alt} className="h-[320px] sm:h-[400px] w-full rounded-3xl object-cover shadow-xl" />
                           </div>
                         ))}
                       </AutoScroll>
                     </div>
                   </div>
 
+                  {/* Desktop: Vertical scrolling columns */}
                   <div key={`desktop-imgs-${expandedImages.map(i => i.src).join('|').slice(0, 50)}`} className="hidden grid-cols-2 gap-4 lg:grid">
                     <AutoScroll direction="vertical" durationSec={48} className="h-[600px]" contentClassName="gap-4">
                       {expandedImages.slice(0, 6).map((img, idx) => (
@@ -235,27 +237,29 @@ export default function Hero85({
             </ImageManagerDialog>
           ) : expandedImages.length > 0 && (
             <>
-              <div key={`mobile-imgs-${expandedImages.map(i => i.src).join('|').slice(0, 50)}`} className="flex flex-col gap-4 lg:hidden w-screen -ml-6 overflow-hidden">
+              {/* Mobile: Horizontal scrolling rows with enhanced sizing */}
+              <div key={`mobile-imgs-${expandedImages.map(i => i.src).join('|').slice(0, 50)}`} className="flex flex-col gap-5 lg:hidden w-screen -ml-6 overflow-hidden">
                 <div className="overflow-hidden">
-                  <AutoScroll direction="horizontal" durationSec={28} className="w-full" contentClassName="gap-4 pl-6">
+                  <AutoScroll direction="horizontal" durationSec={25} className="w-full" contentClassName="gap-5 pl-6 pr-6">
                     {expandedImages.slice(0, 6).map((img, idx) => (
-                      <div key={`m-row1-${idx}`} className="w-72 shrink-0">
-                        <img src={img.src} alt={img.alt} className="h-48 w-full rounded-2xl object-cover" />
+                      <div key={`m-row1-${idx}`} className="w-[85vw] sm:w-96 shrink-0">
+                        <img src={img.src} alt={img.alt} className="h-[320px] sm:h-[400px] w-full rounded-3xl object-cover shadow-xl" />
                       </div>
                     ))}
                   </AutoScroll>
                 </div>
                 <div className="overflow-hidden">
-                  <AutoScroll direction="horizontal" reverse durationSec={28} className="w-full" contentClassName="gap-4 pl-6">
+                  <AutoScroll direction="horizontal" reverse durationSec={25} className="w-full" contentClassName="gap-5 pl-6 pr-6">
                     {expandedImages.slice(3, 9).map((img, idx) => (
-                      <div key={`m-row2-${idx}`} className="w-72 shrink-0">
-                        <img src={img.src} alt={img.alt} className="h-48 w-full rounded-2xl object-cover" />
+                      <div key={`m-row2-${idx}`} className="w-[85vw] sm:w-96 shrink-0">
+                        <img src={img.src} alt={img.alt} className="h-[320px] sm:h-[400px] w-full rounded-3xl object-cover shadow-xl" />
                       </div>
                     ))}
                   </AutoScroll>
                 </div>
               </div>
 
+              {/* Desktop: Vertical scrolling columns */}
               <div key={`desktop-imgs-${expandedImages.map(i => i.src).join('|').slice(0, 50)}`} className="hidden grid-cols-2 gap-4 lg:grid">
                 <AutoScroll direction="vertical" durationSec={48} className="h-[600px]" contentClassName="gap-4">
                   {expandedImages.slice(0, 6).map((img, idx) => (

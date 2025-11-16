@@ -42,7 +42,7 @@ export default function FooterMinimal(props: FooterMinimalProps) {
   return (
     <footer className={cn("border-t border-border bg-card", className)}>
 
-      <div className="container mx-auto px-6 md:px-10 lg:px-16 py-12">
+      <div className="container mx-auto px-4 md:px-10 lg:px-16 py-12">
         <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <div className="space-y-2">
             {isBuilder ? (

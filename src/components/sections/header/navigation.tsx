@@ -7,8 +7,7 @@ import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { DarkModeToggle } from '@/components/dark-mode-toggle'
 import { CartButtonWithDialog } from '@/components/cart/cart-dialog'
-import { SiteConfig, RichText } from '@/lib/builder-types'
-import { RenderableText } from '@/components/builder/renderable-text'
+import { SiteConfig } from '@/lib/builder-types'
 import { LanguageSwitcher } from '@/components/sections/header/language-switcher'
 import { t, useI18n } from '@/lib/i18n'
 import type { LanguageCode } from '@/lib/stores/language-store'
@@ -20,21 +19,17 @@ export interface NavigationProps {
     config?: SiteConfig
     blockId?: string
     logoPosition?: 'left' | 'middle'
-    logoText?: RichText
     logoImageSrc?: string
     menuItems?: Array<{ name: string; href: string }>
-    cartCount?: number
     showCartIcon?: boolean
 }
 
 export const Navigation = ({ 
-    config, 
+    config,
     blockId: _blockId,
     logoPosition = 'left',
-    logoText = { text: 'Your Logo' },
     logoImageSrc = '/billy.svg',
     menuItems,
-    cartCount: _cartCount = 0,
     showCartIcon = true
 }: NavigationProps) => {
     const [menuState, setMenuState] = React.useState(false)
@@ -63,20 +58,15 @@ export const Navigation = ({
             href="/"
             aria-label="home"
             className="flex items-center space-x-2">
-            {logoImageSrc ? (
-                <Image 
-                    src={logoImageSrc} 
-                    alt="logo" 
-                    width={100} 
-                    height={20} 
-                    className="invert dark:invert-0" 
-                />
-            ) : (
-                <RenderableText 
-                    content={logoText} 
-                    className="text-lg font-semibold"
-                />
-            )}
+            <Image 
+                src={logoImageSrc || '/billy.svg'} 
+                alt="logo" 
+                width={100} 
+                height={40} 
+                className="h-10 w-auto object-contain"
+                style={{ width: 'auto' }}
+                priority
+            />
         </Link>
     )
 

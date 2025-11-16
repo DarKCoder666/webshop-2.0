@@ -2,9 +2,9 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { RenderBlock } from "@/components/builder/block-registry";
-import { BlockType, SiteConfig } from "@/lib/builder-types";
-import { loadSiteConfig, saveSiteConfig, addBlock, reorderBlocks, removeBlock, getAllLayouts, updateLayout, addBlockToLayout, reorderBlocksInLayout, removeBlockFromLayout } from "@/api/webshop-api";
+import { RenderBlock, getSchema } from "@/components/builder/block-registry";
+import { BlockType, SiteConfig, BlockInstance } from "@/lib/builder-types";
+import { loadSiteConfig, saveSiteConfig, getAllLayouts, updateLayout } from "@/api/webshop-api";
 import { InsertBlockButton } from "@/components/builder/insert-button";
 import { initializeDebugTools } from "@/lib/api-test-utils";
 import { MorphingPopover, MorphingPopoverContent, MorphingPopoverTrigger } from "@/components/motion-primitives/morphing-popover";
@@ -97,55 +97,40 @@ function BuilderPageContent() {
     }
   }, [config, selectedType]);
 
-  const insertBlockAt = async (index: number, type: BlockType) => {
+  const insertBlockAt = (index: number, type: BlockType) => {
     if (!config) return;
     
-    let tempConfig: SiteConfig;
+    // Get default props for the block type
+    const schema = getSchema(type);
+    const defaultProps = schema?.defaultProps || {};
     
-    // Use the correct API based on whether we have a layout ID
-    if (currentLayoutId) {
-      // For non-home pages, use layout-specific function
-      tempConfig = await addBlockToLayout(currentLayoutId, config, type, {});
-    } else {
-      // For home page, use the original function
-      tempConfig = await addBlock(config, type, {});
-    }
-    
-    const newBlock = tempConfig.blocks[tempConfig.blocks.length - 1];
-    
-    // Remove from end and insert at correct position
-    const blocksWithoutNew = tempConfig.blocks.slice(0, -1);
-    const next: SiteConfig = { 
-      ...tempConfig, 
-      blocks: [...blocksWithoutNew.slice(0, index), newBlock, ...blocksWithoutNew.slice(index)] 
+    // Create new block
+    const newBlock: BlockInstance = {
+      id: `block-${Date.now()}`,
+      type,
+      props: defaultProps,
     };
     
-    // Save the reordered config
-    let updated: SiteConfig;
-    if (currentLayoutId) {
-      const updatedLayout = await updateLayout(currentLayoutId, { config: next });
-      updated = updatedLayout.config;
-    } else {
-      updated = await saveSiteConfig(next);
-    }
+    // Insert at correct position (local state only)
+    const next: SiteConfig = { 
+      ...config, 
+      blocks: [...config.blocks.slice(0, index), newBlock, ...config.blocks.slice(index)] 
+    };
     
-    setConfig(updated);
+    // Update local state only - don't save to server
+    setConfig(next);
   };
 
-  const moveBlock = async (from: number, to: number) => {
+  const moveBlock = (from: number, to: number) => {
     if (!config) return;
     
-    let updated: SiteConfig;
+    // Reorder blocks in local state only
+    const nextBlocks = [...config.blocks];
+    const [moved] = nextBlocks.splice(from, 1);
+    nextBlocks.splice(to, 0, moved);
+    const updated: SiteConfig = { ...config, blocks: nextBlocks };
     
-    // Use the correct API based on whether we have a layout ID
-    if (currentLayoutId) {
-      // For non-home pages, use layout-specific function
-      updated = await reorderBlocksInLayout(currentLayoutId, config, from, to);
-    } else {
-      // For home page, use the original function
-      updated = await reorderBlocks(config, from, to);
-    }
-    
+    // Update local state only - don't save to server
     setConfig(updated);
   };
 
@@ -202,14 +187,12 @@ function BuilderPageContent() {
     setConfig({ ...config, blocks: updatedBlocks });
   };
 
-  const handleConfigUpdate = async (updates: Partial<SiteConfig>) => {
+  const handleConfigUpdate = (updates: Partial<SiteConfig>) => {
     if (!config) return;
     
     const updatedConfig = { ...config, ...updates };
+    // Update local state only - don't save to server
     setConfig(updatedConfig);
-    
-    // Save to server
-    await saveSiteConfig(updatedConfig);
   };
 
   const handleBlockPropsUpdate = (blockId: string, props: Record<string, unknown>) => {
@@ -230,13 +213,8 @@ function BuilderPageContent() {
     try {
       setIsLoading(true);
       
-      // Save current page configuration if we have a current layout ID
-      if (currentLayoutId && config) {
-        console.log('Saving current page before switch, ID:', currentLayoutId);
-        await updateLayout(currentLayoutId, { config });
-      }
-      
-      // Switch to the selected page
+      // Don't save current page - let user click save button when ready
+      // Just switch to the selected page
       setConfig(layout.config);
       setCurrentPageType(layout.pageType);
       setCurrentLayoutId(layout._id);
@@ -245,7 +223,7 @@ function BuilderPageContent() {
       console.log('Successfully switched to page ID:', layout._id);
     } catch (error) {
       console.error('Failed to switch page:', error);
-      // Still switch the page even if saving failed
+      // Still switch the page even if switching failed
       setConfig(layout.config);
       setCurrentPageType(layout.pageType);
       setCurrentLayoutId(layout._id);
@@ -355,20 +333,16 @@ function BuilderPageContent() {
                       <p className="text-sm text-card-foreground">{t('delete_section_q')}</p>
                       <div className="flex gap-2 justify-end">
                         <button onClick={() => setConfirmOpenId(null)} className="rounded-md border border-border bg-card px-4 py-2 text-xs font-medium hover:bg-muted text-card-foreground">{t('cancel')}</button>
-                        <button onClick={async () => { 
+                        <button onClick={() => { 
                           if (!config) return; 
                           
-                          let updated: SiteConfig;
+                          // Remove block from local state only
+                          const updated: SiteConfig = {
+                            ...config,
+                            blocks: config.blocks.filter((block) => block.id !== b.id),
+                          };
                           
-                          // Use the correct API based on whether we have a layout ID
-                          if (currentLayoutId) {
-                            // For non-home pages, use layout-specific function
-                            updated = await removeBlockFromLayout(currentLayoutId, config, b.id);
-                          } else {
-                            // For home page, use the original function
-                            updated = await removeBlock(config, b.id);
-                          }
-                          
+                          // Update local state only - don't save to server
                           setConfig(updated); 
                           setConfirmOpenId(null); 
                         }} className="rounded-md bg-destructive px-4 py-2 text-xs font-semibold text-destructive-foreground hover:bg-destructive/90">{t('delete')}</button>

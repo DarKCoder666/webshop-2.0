@@ -12,6 +12,7 @@ import { themePresets } from '@/lib/theme-presets';
 import { useUpdateGlobalSettings } from '@/queries/global-settings';
 import { getCurrentShopId, WebshopLayout } from '@/api/webshop-api';
 import { useI18n } from '@/lib/i18n';
+import { useGlobalThemeStore } from '@/lib/stores/global-theme-store';
 
 type BuilderDockProps = {
   config: SiteConfig;
@@ -28,6 +29,7 @@ export function BuilderDock({ config, onConfigUpdate, currentPageType, currentLa
   const t = useI18n();
   const shopId = getCurrentShopId();
   const updateGlobalSettings = useUpdateGlobalSettings(shopId);
+  const { globalSettings } = useGlobalThemeStore();
 
   const handleThemeChange = async (preset: ThemePreset) => {
     const themeData = themePresets[preset];
@@ -42,8 +44,8 @@ export function BuilderDock({ config, onConfigUpdate, currentPageType, currentLa
           fontSerif: themeData.fonts.serif,
           fontMono: themeData.fonts.mono,
           radius: '0.5rem',
-          supportsDarkMode: config.theme?.supportsDarkMode ?? true,
-          defaultMode: config.theme?.defaultMode || 'light',
+          supportsDarkMode: globalSettings?.theme?.supportsDarkMode ?? config.theme?.supportsDarkMode ?? true,
+          defaultMode: globalSettings?.theme?.defaultMode || config.theme?.defaultMode || 'light',
         },
       });
     } catch (error) {
@@ -53,17 +55,32 @@ export function BuilderDock({ config, onConfigUpdate, currentPageType, currentLa
 
   const handleThemeConfigChange = async (themeConfig: Partial<SiteConfig['theme']>) => {
     try {
+      // Get current theme from global store, fallback to config
+      const currentTheme = globalSettings?.theme || config.theme;
+      const currentPreset = currentTheme?.preset || 'default';
+      const currentPresetData = themePresets[currentPreset as ThemePreset];
+      
+      // Determine supportsDarkMode: use explicit value from themeConfig, fallback to current theme, default to true
+      const supportsDarkMode = themeConfig.supportsDarkMode !== undefined 
+        ? themeConfig.supportsDarkMode 
+        : (currentTheme?.supportsDarkMode ?? true);
+      
+      // Determine defaultMode: use explicit value from themeConfig, fallback to current theme, default to 'light'
+      const defaultMode = themeConfig.defaultMode || currentTheme?.defaultMode || 'light';
+
       await updateGlobalSettings.mutateAsync({
         theme: {
-          preset: config.theme?.preset || 'default',
-          colors: config.theme?.colors || themePresets.default.colors,
-          darkColors: config.theme?.darkColors || themePresets.default.darkColors,
-          fontSans: config.theme?.fontSans || themePresets.default.fonts.sans,
-          fontSerif: config.theme?.fontSerif || themePresets.default.fonts.serif,
-          fontMono: config.theme?.fontMono || themePresets.default.fonts.mono,
-          radius: config.theme?.radius || '0.5rem',
-          supportsDarkMode: config.theme?.supportsDarkMode ?? true,
-          defaultMode: config.theme?.defaultMode || 'light',
+          // Preserve current theme preset and colors
+          preset: currentPreset,
+          colors: currentTheme?.colors || currentPresetData.colors,
+          darkColors: currentTheme?.darkColors || currentPresetData.darkColors,
+          fontSans: currentTheme?.fontSans || currentPresetData.fonts.sans,
+          fontSerif: currentTheme?.fontSerif || currentPresetData.fonts.serif,
+          fontMono: currentTheme?.fontMono || currentPresetData.fonts.mono,
+          radius: currentTheme?.radius || '0.5rem',
+          supportsDarkMode,
+          defaultMode,
+          // Apply any additional config changes (but don't override what we just set)
           ...themeConfig,
         },
       });

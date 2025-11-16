@@ -30,10 +30,33 @@ export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
     const langForSSR: LanguageCode | undefined = mounted ? undefined : 'ru'
     const tt = useI18n()
     const categories = categoriesData?.results || []
-    const [navLogoImageSrc, setNavLogoImageSrc] = React.useState<string>('')
-    const [navLogoText, setNavLogoText] = React.useState<string>('Your Logo')
-    const [navShowCartIcon, setNavShowCartIcon] = React.useState<boolean>(true)
-    const [navMenuItems, setNavMenuItems] = React.useState<Array<{ name: string; href: string }>>([])
+    
+    // Get initial values from config if available, otherwise use defaults
+    const getInitialNavSettings = () => {
+        if (config) {
+            const navBlock = config.blocks.find((b) => b.type === 'navigation')
+            const props = (navBlock?.props as any) || {}
+            return {
+                logoImageSrc: (props.logoImageSrc as string) || '/billy.svg',
+                logoText: (props.logoText?.text as string) || '',
+                showCartIcon: props.showCartIcon !== false,
+                menuItems: (props.menuItems as Array<{ name: string; href: string }>) || []
+            }
+        }
+        // Default values to prevent flash
+        return {
+            logoImageSrc: '/billy.svg',
+            logoText: '',
+            showCartIcon: true,
+            menuItems: []
+        }
+    }
+    
+    const initialSettings = getInitialNavSettings()
+    const [navLogoImageSrc, setNavLogoImageSrc] = React.useState<string>(initialSettings.logoImageSrc)
+    const [navLogoText, setNavLogoText] = React.useState<string>(initialSettings.logoText)
+    const [navShowCartIcon, setNavShowCartIcon] = React.useState<boolean>(initialSettings.showCartIcon)
+    const [navMenuItems, setNavMenuItems] = React.useState<Array<{ name: string; href: string }>>(initialSettings.menuItems)
     const { isAuthenticated, checkAuth, logout } = useAuthStore()
     const router = useRouter()
 
@@ -55,8 +78,9 @@ export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
         const applyFromConfig = (cfg: SiteConfig) => {
             const navBlock = cfg.blocks.find((b) => b.type === 'navigation')
             const props = (navBlock?.props as any) || {}
+            // Use default logo if none is set
+            setNavLogoImageSrc((props.logoImageSrc as string) || '/billy.svg')
             setNavLogoText((props.logoText?.text as string) || '')
-            setNavLogoImageSrc((props.logoImageSrc as string) || '')
             setNavShowCartIcon(props.showCartIcon !== false)
             const items = (props.menuItems as Array<{ name: string; href: string }>) || []
             setNavMenuItems(items)
@@ -87,35 +111,65 @@ export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
                 <div
                     className={cn(
                         isScrolled
-                            ? 'mx-auto mt-2 max-w-4xl px-6 transition-all duration-300 lg:px-5 rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-lg'
-                            : 'container mx-auto mt-2 px-6 md:px-10 lg:px-16 transition-all duration-300'
+                            ? 'mx-auto mt-2 max-w-4xl px-4 transition-all duration-300 lg:px-5 rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-lg'
+                            : 'container mx-auto mt-2 px-4 md:px-10 lg:px-16 transition-all duration-300'
                     )}
                 >
-                    <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
-                        <div className="flex w-full justify-between lg:w-auto">
-                            <Link
-                                href="/"
-                                aria-label="home"
-                                className="flex items-center space-x-2">
-                                {navLogoImageSrc ? (
-                                    <Image src={navLogoImageSrc} alt="logo" width={100} height={20} className="invert dark:invert-0" />
-                                ) : (
-                                    <span className="text-lg font-semibold">{navLogoText}</span>
-                                )}
-                            </Link>
-
-                            <div className="flex items-center gap-2">
-                                {navShowCartIcon && <CartButtonWithDialog className="lg:hidden" />}
-                                <button
-                                    onClick={() => setMenuState(!menuState)}
-                                    aria-label={menuState == true ? 'Close Menu' : 'Open Menu'}
-                                    className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden">
-                                    <Menu className="in-data-[state=active]:rotate-180 in-data-[state=active]:scale-0 in-data-[state=active]:opacity-0 m-auto size-6 duration-200 text-foreground" />
-                                    <X className="in-data-[state=active]:rotate-0 in-data-[state=active]:scale-100 in-data-[state=active]:opacity-100 absolute inset-0 m-auto size-6 -rotate-180 scale-0 opacity-0 duration-200 text-foreground" />
-                                </button>
+                    <div className="relative flex flex-wrap items-center justify-between gap-6 py-1.5 lg:gap-0 lg:py-4">
+                        {/* Mobile layout */}
+                        <div className="relative flex w-full items-center justify-between lg:hidden">
+                            {/* Hamburger - Left */}
+                            <button
+                                onClick={() => setMenuState(!menuState)}
+                                aria-label={menuState == true ? 'Close Menu' : 'Open Menu'}
+                                className="relative z-20 flex cursor-pointer items-center justify-center">
+                                <Menu className="in-data-[state=active]:rotate-180 in-data-[state=active]:scale-0 in-data-[state=active]:opacity-0 size-6 duration-200 text-foreground" />
+                                <X className="in-data-[state=active]:rotate-0 in-data-[state=active]:scale-100 in-data-[state=active]:opacity-100 absolute inset-0 size-6 -rotate-180 scale-0 opacity-0 duration-200 text-foreground" />
+                            </button>
+                            
+                            {/* Logo - Center (absolutely positioned) */}
+                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                                <div className="pointer-events-auto">
+                                    <Link
+                                        href="/"
+                                        aria-label="home"
+                                        className="flex items-center space-x-2">
+                                        <Image 
+                                            src={navLogoImageSrc || '/billy.svg'} 
+                                            alt="logo" 
+                                            width={100} 
+                                            height={40} 
+                                            className="h-5 w-auto object-contain"
+                                            style={{ width: 'auto' }}
+                                            priority
+                                        />
+                                    </Link>
+                                </div>
+                            </div>
+                            
+                            {/* Cart - Right */}
+                            <div className="flex items-center z-20">
+                                {navShowCartIcon && <CartButtonWithDialog />}
                             </div>
                         </div>
 
+                        {/* Desktop logo - Left */}
+                        <Link
+                            href="/"
+                            aria-label="home"
+                            className="hidden lg:flex items-center space-x-2 lg:w-auto">
+                            <Image 
+                                src={navLogoImageSrc || '/billy.svg'} 
+                                alt="logo" 
+                                width={100} 
+                                height={40} 
+                                className="h-10 w-auto object-contain"
+                                style={{ width: 'auto' }}
+                                priority
+                            />
+                        </Link>
+
+                        {/* Desktop menu - Center */}
                         <div className="absolute inset-0 m-auto hidden size-fit lg:block">
                             <ul className="flex gap-8 text-sm">
                                 {/* Categories click-open panel */}
@@ -186,7 +240,7 @@ export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
                                             <span>{mounted ? tt('categories') : t('categories', langForSSR)}</span>
                                         </button>
                                         {mobileCategoriesOpen && (
-                                            <div className="mt-3 space-y-1 rounded-lg border border-border bg-card p-2">
+                                            <div className="mt-3 space-y-1 rounded-lg border border-border bg-card p-2 max-h-60 overflow-y-auto overscroll-contain">
                                                 {categories.length === 0 ? (
                                                     <div className="px-2 py-1 text-sm text-muted-foreground">{mounted ? tt('no_categories') : t('no_categories', langForSSR)}</div>
                                                 ) : (

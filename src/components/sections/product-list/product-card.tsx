@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Heart, Plus, Check } from "lucide-react";
+import { Heart, Plus, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TextEffect } from "@/components/motion-primitives/text-effect";
 import ProductPlaceholder from "@/components/sections/product-list/product-placeholder";
@@ -39,11 +39,13 @@ export function ProductCard({
 }: ProductCardProps) {
   const { settings } = useWebshopSettings();
   const tt = useI18n();
+  const router = useRouter();
   const [isFavorite, setIsFavorite] = React.useState<boolean>(!!product.favorite);
   const [adding, setAdding] = React.useState(false);
   const [hoverAdd, setHoverAdd] = React.useState(false);
   const [displayedLabel, setDisplayedLabel] = React.useState<string>(tt('to_cart'));
   const [labelTrigger, setLabelTrigger] = React.useState<boolean>(true);
+  const [isNavigating, setIsNavigating] = React.useState(false);
 
   React.useEffect(() => {
     const target = adding ? tt('added') : tt('to_cart');
@@ -85,6 +87,12 @@ export function ProductCard({
     setTimeout(() => setAdding(false), 2000);
   }, []);
 
+  const handleProductClick = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push(`/product/${product.id}`);
+  }, [router, product.id]);
+
   return (
     <motion.div
       layout
@@ -94,11 +102,16 @@ export function ProductCard({
       transition={{ duration: 0.35 }}
       className={cn(
         "group relative overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm h-full flex flex-col",
+        isNavigating && "opacity-60 pointer-events-none",
         className
       )}
     >
       <div className={cn("relative overflow-hidden", aspectClass)}>
-        <Link href={`/product/${product.id}`} className="block h-full w-full">
+        <a 
+          href={`/product/${product.id}`} 
+          onClick={handleProductClick}
+          className="block h-full w-full cursor-pointer"
+        >
           {product.imageSrc ? (
             <motion.img
               src={product.imageSrc}
@@ -120,7 +133,13 @@ export function ProductCard({
               <ProductPlaceholder className="h-full w-full" />
             </motion.div>
           )}
-        </Link>
+        </a>
+
+        {isNavigating && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
 
         <button
           type="button"
@@ -143,8 +162,12 @@ export function ProductCard({
         </button>
       </div>
 
-      <Link href={`/product/${product.id}`} className="block">
-        <div className="p-5">
+      <a 
+        href={`/product/${product.id}`} 
+        onClick={handleProductClick}
+        className="block cursor-pointer"
+      >
+        <div className="p-4 md:p-5">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-lg font-semibold leading-tight">{product.title}</h3>
             <div className="text-right">
@@ -166,9 +189,9 @@ export function ProductCard({
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{product.category}</p>
         </div>
-      </Link>
+      </a>
 
-      <div className="mx-5 border-t border-border mt-auto" />
+      <div className="mx-4 md:mx-5 border-t border-border mt-auto" />
 
       <QuickAddController productId={product.id} productTitle={product.title} productImageUrl={product.imageSrc}>
         {({ onClick, Dialog }) => (
@@ -185,7 +208,7 @@ export function ProductCard({
               onMouseEnter={() => setHoverAdd(true)}
               onMouseLeave={() => setHoverAdd(false)}
               className={cn(
-                "relative flex w-full items-center gap-2 overflow-hidden px-6 py-4 text-base font-medium transition-colors cursor-pointer",
+                "relative flex w-full items-center gap-2 overflow-hidden px-4 md:px-6 py-3 md:py-4 text-sm md:text-base font-medium transition-colors cursor-pointer",
                 hoverAdd || adding ? "text-primary-foreground" : undefined
               )}
               whileHover={{ scale: 1.01 }}

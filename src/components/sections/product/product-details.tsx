@@ -66,7 +66,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
   return (
     <section className="py-8 lg:py-12 bg-muted/20">
-      <div className="container mx-auto px-6 md:px-10 lg:px-16">
+      <div className="container mx-auto px-4 md:px-10 lg:px-16">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Purchase Section */}
           <div className="bg-card rounded-lg p-6 border border-border">

@@ -51,7 +51,7 @@ export default function FooterHalfscreen(props: FooterHalfscreenProps) {
 
   return (
     <footer className={cn("relative border-t border-border bg-background", className)}>
-      <div className="container mx-auto px-6 md:px-10 lg:px-16 py-20 md:py-28">
+      <div className="container mx-auto px-4 md:px-10 lg:px-16 py-20 md:py-28">
         <div className="grid items-stretch gap-8 md:grid-cols-2">
           {/* Left: Content */}
           <div className="relative z-10 flex flex-col justify-center py-4">

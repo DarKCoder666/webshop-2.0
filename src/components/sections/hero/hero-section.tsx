@@ -64,7 +64,7 @@ export default function HeroSection({
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
             </div>
 
-            <div className="relative container mx-auto px-6 md:px-10 lg:px-16 pt-28 md:pt-36">
+            <div className="relative container mx-auto px-4 md:px-10 lg:px-16 pt-28 md:pt-36">
                 <div className="grid items-center gap-12 md:grid-cols-2">
                     <div className="space-y-6">
                         <div className="space-y-2">

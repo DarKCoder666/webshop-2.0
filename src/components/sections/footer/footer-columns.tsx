@@ -39,7 +39,7 @@ export default function FooterColumns(props: FooterColumnsProps) {
 
   return (
     <footer className={cn("border-t border-border bg-card", className)}>
-      <div className="container mx-auto px-6 md:px-10 lg:px-16 py-16">
+      <div className="container mx-auto px-4 md:px-10 lg:px-16 py-16">
         <div className="grid gap-12 md:grid-cols-12">
           <div className="md:col-span-4 space-y-3">
             {isBuilder ? (

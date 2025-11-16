@@ -176,7 +176,7 @@ export default function Hero210({
   return (
     <section className="py-0 md:py-16">
       <style>{css}</style>
-      <div className="container mx-auto px-6 md:px-10 lg:px-16">
+      <div className="container mx-auto px-4 md:px-10 lg:px-16">
         <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-4">
           {(title || isBuilder) && (
             isBuilder ? (

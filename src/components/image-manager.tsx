@@ -605,7 +605,7 @@ export function ImageManager({
                   <div className="mt-6 flex justify-center">
                     <Button
                       onClick={() => onSelectionChange?.(selectedImages)}
-                      className="px-6 py-2"
+                      className="px-6 py-2 cursor-pointer"
                       size="default"
                     >
                       {t('apply_selection')} ({selectedImages.length} {selectedImages.length === 1 ? t('image') : t('images')})

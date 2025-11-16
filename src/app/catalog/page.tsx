@@ -208,9 +208,9 @@ function CatalogPageContent() {
   }, [search, selectedCategories, minPrice, maxPrice, normalizedAttributes]);
 
   return (
-    <div className="container mx-auto px-6 md:px-10 lg:px-16 py-10">
-      <div className="flex items-center justify-between mb-6 lg:mb-0">
-        <h1 className="text-2xl font-semibold lg:hidden">{t('catalog_title')}</h1>
+    <div className="container mx-auto px-4 md:px-10 lg:px-16 py-4 md:py-10">
+      <div className="flex items-center justify-between mb-3 md:mb-6 lg:mb-0">
+        <h1 className="text-xl md:text-2xl font-semibold lg:hidden">{t('catalog_title')}</h1>
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="lg:hidden relative">
@@ -222,14 +222,14 @@ function CatalogPageContent() {
               )}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>{t('filters')}</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-1 gap-6 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-1 gap-4 md:gap-6 max-h-[70vh] overflow-y-auto px-1">
               {/* Mobile filters replicate the sidebar */}
               <div>
-                <h2 className="text-base font-semibold mb-3">{t('search')}</h2>
+                <h2 className="text-sm md:text-base font-semibold mb-2">{t('search')}</h2>
                 <Input
                   placeholder={t('search_products')}
                   value={search}
@@ -237,8 +237,8 @@ function CatalogPageContent() {
                 />
               </div>
               <div>
-                <h2 className="text-base font-semibold mb-3">{t('categories_label')}</h2>
-                <div className="grid grid-cols-2 gap-2">
+                <h2 className="text-sm md:text-base font-semibold mb-2">{t('categories_label')}</h2>
+                <div className="grid grid-cols-2 gap-1.5">
                   {categories.map((c) => (
                     <label key={c._id} className="flex items-center gap-2 text-sm">
                       <input
@@ -252,8 +252,8 @@ function CatalogPageContent() {
                 </div>
               </div>
               <div>
-                <h2 className="text-base font-semibold mb-3">{t('price_label')}</h2>
-                <div className="flex items-center gap-3">
+                <h2 className="text-sm md:text-base font-semibold mb-2">{t('price_label')}</h2>
+                <div className="flex items-center gap-2">
                   <Input
                     type="number"
                     placeholder={t('min')}
@@ -274,11 +274,11 @@ function CatalogPageContent() {
                 </div>
               </div>
               {attributesData && attributesData.length > 0 && (
-                <div className="space-y-4">
-                  <h2 className="text-base font-semibold">{t('attributes_label')}</h2>
+                <div className="space-y-3">
+                  <h2 className="text-sm md:text-base font-semibold">{t('attributes_label')}</h2>
                   {attributesData.map((attr) => (
-                    <div key={attr._id} className="space-y-2">
-                      <h3 className="font-medium capitalize text-sm">{attr.key}</h3>
+                    <div key={attr._id} className="space-y-1.5">
+                      <h3 className="font-medium capitalize text-xs md:text-sm">{attr.key}</h3>
                       <div className="flex flex-wrap gap-2">
                         {attr.value.map((v) => {
                           const checked = Array.isArray(attrFilters[attr.key])
@@ -308,8 +308,8 @@ function CatalogPageContent() {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <aside className="lg:col-span-3 space-y-8 hidden lg:block">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-6 lg:gap-8">
+        <aside className="lg:col-span-3 space-y-4 md:space-y-6 lg:space-y-8 hidden lg:block">
           <div>
             <h2 className="text-xl font-semibold mb-3">{t('search')}</h2>
             <Input
@@ -408,7 +408,7 @@ function CatalogPageContent() {
 
           {/* Pagination */}
           {totalPages > page && (
-            <div className="mt-8 flex justify-center gap-2">
+            <div className="mt-6 md:mt-8 flex justify-center gap-2">
               <Button
                 variant="outline"
                 onClick={() => { const next = Math.max(1, page - 1); setPage(next); }}
@@ -434,7 +434,7 @@ function CatalogPageContent() {
 
 export default function CatalogPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto px-6 md:px-10 lg:px-16 py-10">{t('loading')}</div>}>
+    <Suspense fallback={<div className="container mx-auto px-4 md:px-10 lg:px-16 py-10">{t('loading')}</div>}>
       <CatalogPageContent />
     </Suspense>
   );

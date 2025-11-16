@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { SiteConfig } from '@/lib/builder-types';
+import { useGlobalThemeStore } from '@/lib/stores/global-theme-store';
 
 type DarkModeToggleProps = {
   config?: SiteConfig;
@@ -10,10 +11,13 @@ type DarkModeToggleProps = {
 
 export function DarkModeToggle({ config }: DarkModeToggleProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { globalSettings, getSupportsDarkMode, getDefaultMode } = useGlobalThemeStore();
 
-  // Check if dark mode is supported by the site
-  const supportsDarkMode = config?.theme?.supportsDarkMode ?? true;
-  const defaultMode = config?.theme?.defaultMode || 'light';
+  // Check if dark mode is supported by the site - use global store if available, otherwise config
+  const supportsDarkMode = globalSettings?.theme?.supportsDarkMode !== undefined
+    ? globalSettings.theme.supportsDarkMode
+    : (config?.theme?.supportsDarkMode ?? true);
+  const defaultMode = globalSettings?.theme?.defaultMode || config?.theme?.defaultMode || 'light';
 
   // Load dark mode preference from localStorage on mount
   useEffect(() => {

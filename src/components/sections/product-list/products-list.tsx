@@ -149,8 +149,9 @@ export default function ProductsList({
   };
 
   return (
-    <section className="container mx-auto px-6 md:px-10 lg:px-16 py-16">
-      <div className="mb-10 flex flex-col items-center text-center">
+    <section className="w-full py-8 md:py-16">
+      <div className="container mx-auto px-4 md:px-10 lg:px-16">
+        <div className="mb-4 md:mb-10 flex flex-col items-center text-center">
         {(title || isBuilder) && (
           isBuilder ? (
             <EditableText
@@ -205,9 +206,9 @@ export default function ProductsList({
             />
           )
         )}
-      </div>
+        </div>
 
-      <div className={`${gridCols()} gap-6 md:gap-8`}>
+        <div className={`${gridCols()} gap-3 sm:gap-4 md:gap-6`}>
         {loading ? (
           // Loading skeleton
           Array.from({ length: itemsToShow || 6 }).map((_, index) => (
@@ -239,6 +240,7 @@ export default function ProductsList({
             </div>
           </div>
         )}
+        </div>
       </div>
     </section>
   );
