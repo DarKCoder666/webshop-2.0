@@ -149,7 +149,7 @@ export default function ProductsList({
   };
 
   return (
-    <section className="w-full py-8 md:py-16">
+    <section className="w-full py-8 md:py-0">
       <div className="container mx-auto px-4 md:px-10 lg:px-16">
         <div className="mb-4 md:mb-10 flex flex-col items-center text-center">
         {(title || isBuilder) && (
@@ -189,7 +189,7 @@ export default function ProductsList({
               onSave={updateBlockText}
               isBuilder={isBuilder}
               as="p"
-              className="mt-3 max-w-2xl text-muted-foreground"
+              className="mt-3 max-w-2xl text-muted-foreground hidden md:block"
               placeholder="Enter description..."
               style={getRichTextStyle(subtitle)}
             >
@@ -202,7 +202,7 @@ export default function ProductsList({
               per="word"
               preset="fade"
               delay={0.1}
-              className="mt-3 max-w-2xl text-muted-foreground"
+              className="mt-3 max-w-2xl text-muted-foreground hidden md:block"
             />
           )
         )}

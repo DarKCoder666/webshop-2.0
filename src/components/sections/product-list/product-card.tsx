@@ -116,7 +116,7 @@ export function ProductCard({
             <motion.img
               src={product.imageSrc}
               alt={product.title}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
               initial={false}
               whileHover={{ scale: 1.05 }}
               animate={adding ? { scale: 1.02 } : { scale: 1 }}

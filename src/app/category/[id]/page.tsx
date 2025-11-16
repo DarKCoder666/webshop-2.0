@@ -25,6 +25,7 @@ export default function CategoryPage() {
 
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
+  const [searchInput, setSearchInput] = useState<string>(""); // Local state for input
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [attrFilters, setAttrFilters] = useState<Record<string, string | string[]>>({});
@@ -39,7 +40,10 @@ export default function CategoryPage() {
     if (nextPage !== page) setPage(nextPage);
 
     const nextSearch = searchParams.get('q') || "";
-    if (nextSearch !== search) setSearch(nextSearch);
+    if (nextSearch !== search) {
+      setSearch(nextSearch);
+      setSearchInput(nextSearch); // Sync input with URL
+    }
 
     const min = searchParams.get('min');
     const max = searchParams.get('max');
@@ -83,6 +87,18 @@ export default function CategoryPage() {
     }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchInput !== search) {
+        setSearch(searchInput);
+        setPage(1);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput, search]);
 
   const setAttribute = (key: string, value: string, checked: boolean) => {
     setAttrFilters((prev) => {
@@ -180,6 +196,7 @@ export default function CategoryPage() {
 
   const resetFilters = () => {
     setSearch("");
+    setSearchInput("");
     setMinPrice(priceRange?.min);
     setMaxPrice(priceRange?.max);
     setAttrFilters({});
@@ -209,8 +226,8 @@ export default function CategoryPage() {
       <div className="mb-3 md:mb-6 flex w-full items-center gap-2 md:gap-3">
         <Input
           placeholder={t('search_products')}
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           className="flex-1"
         />
         <Dialog>

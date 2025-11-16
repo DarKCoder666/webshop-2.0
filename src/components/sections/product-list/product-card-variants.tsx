@@ -138,7 +138,7 @@ export function ProductCardV2({ product, className, onToggleFavorite, imageAspec
       <a href={`/product/${product.id}`} onClick={handleProductClick} className="block">
         <div className={cn("relative", aspect)}>
         {product.imageSrc ? (
-          <img src={product.imageSrc} alt={product.title} className="h-full w-full object-cover" />
+          <img src={product.imageSrc} alt={product.title} className="h-full w-full object-contain" />
         ) : (
           <ProductPlaceholder className="h-full w-full" />
         )}
@@ -204,7 +204,7 @@ export function ProductCardV3({ product, className, onToggleFavorite, imageAspec
         <a href={`/product/${product.id}`} onClick={handleProductClick} className="block">
           <div className={cn("relative overflow-hidden rounded-2xl", aspect)}>
           {product.imageSrc ? (
-            <img src={product.imageSrc} alt={product.title} className="h-full w-full object-cover" />
+            <img src={product.imageSrc} alt={product.title} className="h-full w-full object-contain" />
           ) : (
             <ProductPlaceholder className="h-full w-full" />
           )}
@@ -272,7 +272,7 @@ export function ProductCardV4({ product, className, onToggleFavorite, imageAspec
       <a href={`/product/${product.id}`} onClick={handleProductClick} className="block">
         <div className={cn("relative", aspect)}>
         {product.imageSrc ? (
-          <img src={product.imageSrc} alt={product.title} className="h-full w-full object-cover" />
+          <img src={product.imageSrc} alt={product.title} className="h-full w-full object-contain" />
         ) : (
           <ProductPlaceholder className="h-full w-full" />
         )}

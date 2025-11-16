@@ -22,6 +22,7 @@ function CatalogPageContent() {
   const pathname = usePathname();
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
+  const [searchInput, setSearchInput] = useState<string>(""); // Local state for input
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
@@ -37,7 +38,10 @@ function CatalogPageContent() {
     if (nextPage !== page) setPage(nextPage);
 
     const nextSearch = searchParams.get('q') || "";
-    if (nextSearch !== search) setSearch(nextSearch);
+    if (nextSearch !== search) {
+      setSearch(nextSearch);
+      setSearchInput(nextSearch); // Sync input with URL
+    }
 
     const cats = searchParams.getAll('cat');
     // Only update if different to avoid checkbox flicker
@@ -85,6 +89,18 @@ function CatalogPageContent() {
     }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchInput !== search) {
+        setSearch(searchInput);
+        setPage(1);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput, search]);
 
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) => {
@@ -191,6 +207,7 @@ function CatalogPageContent() {
 
   const resetFilters = () => {
     setSearch("");
+    setSearchInput("");
     setSelectedCategories([]);
     setMinPrice(priceRange?.min);
     setMaxPrice(priceRange?.max);
@@ -209,11 +226,17 @@ function CatalogPageContent() {
 
   return (
     <div className="container mx-auto px-4 md:px-10 lg:px-16 py-4 md:py-10">
-      <div className="flex items-center justify-between mb-3 md:mb-6 lg:mb-0">
-        <h1 className="text-xl md:text-2xl font-semibold lg:hidden">{t('catalog_title')}</h1>
+      {/* Top bar: full-width search + Filters button (mobile/tablet only) */}
+      <div className="mb-3 md:mb-6 flex w-full items-center gap-2 md:gap-3 lg:hidden">
+        <Input
+          placeholder={t('search_products')}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="flex-1"
+        />
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="lg:hidden relative">
+            <Button variant="outline" className="relative">
               {t('filters')}
               {appliedFiltersCount > 0 && (
                 <span className="ml-2 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs px-2 py-0.5">
@@ -228,14 +251,6 @@ function CatalogPageContent() {
             </DialogHeader>
             <div className="grid grid-cols-1 gap-4 md:gap-6 max-h-[70vh] overflow-y-auto px-1">
               {/* Mobile filters replicate the sidebar */}
-              <div>
-                <h2 className="text-sm md:text-base font-semibold mb-2">{t('search')}</h2>
-                <Input
-                  placeholder={t('search_products')}
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                />
-              </div>
               <div>
                 <h2 className="text-sm md:text-base font-semibold mb-2">{t('categories_label')}</h2>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -314,8 +329,8 @@ function CatalogPageContent() {
             <h2 className="text-xl font-semibold mb-3">{t('search')}</h2>
             <Input
               placeholder={t('search_products')}
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
 

@@ -11,8 +11,10 @@ import {
 } from "@/components/motion-primitives/morphing-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { BlockInstance } from "@/lib/builder-types";
+import { BlockInstance, RichText } from "@/lib/builder-types";
 import { Plus, Quote, Trash } from "lucide-react";
+import { getRichTextContent } from "@/lib/text-utils";
+import { getCurrentLanguage } from "@/lib/stores/language-store";
 
 type TestimonialsSettingsDialogProps = {
   block: BlockInstance;
@@ -21,7 +23,8 @@ type TestimonialsSettingsDialogProps = {
 
 export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettingsDialogProps) {
   const initial = block.props || {};
-  type Review = { name: any; text: any };
+  type Review = { name: string | RichText; text: string | RichText };
+  
   const buildInitialReviews = (): Review[] => {
     const fromArray = (initial as any).reviews as Review[] | undefined;
     if (Array.isArray(fromArray) && fromArray.length) return fromArray;
@@ -45,16 +48,76 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
       previousReviews.map((review, i) => {
         if (i !== idx) return review;
         const previousField = (review as any)[key];
-        const nextField = typeof previousField === "string"
-          ? { text: value }
-          : { ...(previousField || {}), text: value };
+        const currentLang = getCurrentLanguage();
+        
+        // Preserve multi-language content if it exists
+        let nextField;
+        if (typeof previousField === "string") {
+          // Convert string to RichText with ALL languages (to avoid content loss on language switch)
+          nextField = { 
+            ru: value,
+            en: value,
+            uz: value,
+          };
+        } else if (previousField && typeof previousField === "object") {
+          // Check if it has language keys (ru, en, uz)
+          const hasLangKeys = previousField.ru || previousField.en || previousField.uz;
+          if (hasLangKeys) {
+            // Multi-language object exists
+            // Check if other languages have different content
+            const languages = ['ru', 'en', 'uz'] as const;
+            const uniqueValues = new Set(languages.map(lang => previousField[lang]).filter(Boolean));
+            
+            if (uniqueValues.size <= 1) {
+              // All languages have the same value (or only one language exists)
+              // Update all languages to keep them in sync
+              nextField = { 
+                ru: value,
+                en: value,
+                uz: value,
+              };
+            } else {
+              // Different languages have different content - preserve them, only update current
+              nextField = { 
+                ...previousField,
+                [currentLang]: value
+              };
+            }
+          } else if (previousField.text !== undefined) {
+            // It's a simple { text: "..." } format, convert to multi-language
+            nextField = { 
+              ru: value,
+              en: value,
+              uz: value,
+            };
+          } else {
+            // Unknown format, create new with all languages
+            nextField = { 
+              ru: value,
+              en: value,
+              uz: value,
+            };
+          }
+        } else {
+          // No previous field, create new with all languages
+          nextField = { 
+            ru: value,
+            en: value,
+            uz: value,
+          };
+        }
+        
         return { ...review, [key]: nextField } as Review;
       })
     );
   };
 
   const addReview = () => {
-    setReviews((prev) => [...prev, { name: { text: "" }, text: { text: "" } }]);
+    // Create new review with all languages to avoid content disappearing on language switch
+    setReviews((prev) => [...prev, { 
+      name: { ru: "", en: "", uz: "" }, 
+      text: { ru: "", en: "", uz: "" } 
+    }]);
   };
 
   const removeReview = (idx: number) => {
@@ -62,12 +125,12 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
   };
 
   const handleSave = () => {
-    const normalized = reviews
-      .map((r) => ({
-        name: typeof r.name === "string" ? { text: r.name } : r.name,
-        text: typeof r.text === "string" ? { text: r.text } : r.text,
-      }))
-      .filter((r) => (r.name?.text || "").trim() || (r.text?.text || "").trim());
+    // Filter out empty reviews based on the displayed content (using getRichTextContent)
+    const normalized = reviews.filter((r) => {
+      const nameContent = getRichTextContent(r.name).trim();
+      const textContent = getRichTextContent(r.text).trim();
+      return nameContent || textContent;
+    });
 
     onSave({ reviews: normalized });
     // Close the dialog after local update
@@ -106,7 +169,7 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
                   <div>
                     <label className="text-xs font-medium">Имя</label>
                     <Input
-                      value={(typeof r.name === "string" ? r.name : r.name?.text) ?? ""}
+                      value={getRichTextContent(r.name)}
                       onChange={(e) => updateReview(i, "name", e.target.value)}
                     />
                   </div>
@@ -114,7 +177,7 @@ export function TestimonialsSettingsDialog({ block, onSave }: TestimonialsSettin
                     <label className="text-xs font-medium">Текст</label>
                     <Textarea
                       rows={3}
-                      value={(typeof r.text === "string" ? r.text : r.text?.text) ?? ""}
+                      value={getRichTextContent(r.text)}
                       onChange={(e) => updateReview(i, "text", e.target.value)}
                     />
                   </div>

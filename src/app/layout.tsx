@@ -67,7 +67,7 @@ export default function RootLayout({
         <Providers>
           {/* Global Header across all pages */}
           <HeroHeader />
-          <div className="pt-24">
+          <div className="pt-16 lg:pt-24">
             {children}
             {/* Global Footer across all pages */}
             <Footer />
