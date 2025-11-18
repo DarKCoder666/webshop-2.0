@@ -18,7 +18,6 @@ import { getAllLayouts, WebshopLayout } from '@/api/webshop-api';
 import { ImageManagerDialog, type ImageData } from '@/components/image-manager-dialog';
 
 export type NavigationSettings = {
-  logoPosition: 'left' | 'middle';
   logoText: string;
   logoImageSrc: string;
   showCartIcon: boolean;
@@ -37,7 +36,6 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
   // Get current navigation settings from config
   const navigationBlock = config.blocks.find(block => block.type === 'navigation');
   const currentSettings: NavigationSettings = {
-    logoPosition: (navigationBlock?.props?.logoPosition as 'left' | 'middle') || 'left',
     // logoText removed from settings UI; keep existing value if present, otherwise empty
     logoText: (navigationBlock?.props?.logoText as any)?.text || '',
     logoImageSrc: (navigationBlock?.props?.logoImageSrc as string) || '/billy.svg',
@@ -51,9 +49,22 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
   const [pages, setPages] = React.useState<WebshopLayout[]>([]);
   const [loadingPages, setLoadingPages] = React.useState<boolean>(false);
 
+  // Reset settings when dialog opens or when config changes
   React.useEffect(() => {
-    setSettings(currentSettings);
-  }, [config]);
+    if (dialogOpen) {
+      // Recalculate current settings from config when dialog opens
+      const navBlock = config.blocks.find(block => block.type === 'navigation');
+      const freshSettings: NavigationSettings = {
+        logoText: (navBlock?.props?.logoText as any)?.text || '',
+        logoImageSrc: (navBlock?.props?.logoImageSrc as string) || '/billy.svg',
+        showCartIcon: (navBlock?.props?.showCartIcon as boolean) !== false,
+        menuItems: Array.isArray(navBlock?.props?.menuItems)
+          ? (navBlock?.props?.menuItems as Array<{name: string; href: string}>)
+          : [],
+      };
+      setSettings(freshSettings);
+    }
+  }, [dialogOpen, config]);
 
   React.useEffect(() => {
     let mounted = true;
@@ -75,6 +86,10 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
 
   const handleSave = () => {
     onNavigationChange(settings);
+    // Dispatch custom event with the new settings to notify header about navigation update
+    window.dispatchEvent(new CustomEvent('navigationUpdated', { 
+      detail: settings 
+    }));
     // Close dialog after save
     setDialogOpen(false);
   };
@@ -127,18 +142,7 @@ export function NavigationSettingsDialog({ config, onNavigationChange }: Navigat
             </MorphingDialogTitle>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('logo_position')}</label>
-                <select
-                  value={settings.logoPosition}
-                  onChange={(e) => setSettings({ ...settings, logoPosition: e.target.value as 'left' | 'middle' })}
-                  className="w-full p-2 border border-border rounded-md bg-background"
-                >
-                  <option value="left">{t('left')}</option>
-                  <option value="middle">{t('middle')}</option>
-                </select>
-              </div>
-
+              {/* Logo Position field removed */}
               {/* Logo Text field removed */}
 
               <div>

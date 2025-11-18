@@ -102,7 +102,6 @@ export function BuilderDock({ config, onConfigUpdate, currentPageType, currentLa
       id: navigationBlockIndex >= 0 ? config.blocks[navigationBlockIndex].id : `nav-${Date.now()}`,
       type: 'navigation' as const,
       props: {
-        logoPosition: settings.logoPosition,
         logoText: { text: settings.logoText },
         logoImageSrc: settings.logoImageSrc,
         showCartIcon: settings.showCartIcon,

@@ -203,6 +203,14 @@ function BuilderPageContent() {
     // Only update local state - don't save to database
   };
 
+  const handleBlockTypeChange = (blockId: string, newType: BlockType, newProps: Record<string, unknown>) => {
+    if (!config) return;
+    const updatedBlocks = config.blocks.map((b) => (b.id === blockId ? { ...b, type: newType, props: newProps } : b));
+    const updatedConfig = { ...config, blocks: updatedBlocks };
+    setConfig(updatedConfig);
+    // Only update local state - don't save to database
+  };
+
   const handlePageSelect = async (layout: WebshopLayout) => {
     if (isLoading || layout._id === currentLayoutId) {
       return; // Don't switch if already on this page or loading
@@ -322,7 +330,11 @@ function BuilderPageContent() {
                   <ProductsSettingsDialog block={b} onSave={(props) => handleBlockPropsUpdate(b.id, props)} />
                 )}
                 {(b.type === 'footerMinimal' || b.type === 'footerColumns' || b.type === 'footerHalfscreen') && (
-                  <FooterSettingsDialog block={b} onSave={(props) => handleBlockPropsUpdate(b.id, props)} />
+                  <FooterSettingsDialog 
+                    block={b} 
+                    onSave={(props) => handleBlockPropsUpdate(b.id, props)}
+                    onChangeType={(newType, newProps) => handleBlockTypeChange(b.id, newType, newProps)}
+                  />
                 )}
                 <MorphingPopover open={confirmOpenId === b.id} onOpenChange={(open) => setConfirmOpenId(open ? b.id : null)}>
                   <MorphingPopoverTrigger className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2 text-xs font-semibold text-destructive shadow hover:bg-destructive/20">

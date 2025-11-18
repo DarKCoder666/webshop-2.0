@@ -78,9 +78,9 @@ export default function FooterColumns(props: FooterColumnsProps) {
             {/* Newsletter removed */}
           </div>
 
-          <div className="md:col-span-8 grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-4">
+          <div className="md:col-span-8 flex flex-wrap gap-8 justify-end">
             {columns.map((col, idx) => (
-              <div key={`col-${idx}`} className="space-y-3">
+              <div key={`col-${idx}`} className="space-y-3 min-w-[140px]">
                 {isBuilder ? (
                   <EditableText
                     key={`col-title-${idx}-${blockId}`}

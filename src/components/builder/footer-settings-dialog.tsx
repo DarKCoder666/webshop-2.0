@@ -28,6 +28,7 @@ type Column = { title: string; links: ColumnLink[] };
 type FooterSettingsDialogProps = {
   block: BlockInstance;
   onSave: (props: Record<string, unknown>) => void;
+  onChangeType?: (newType: FooterType, newProps: Record<string, unknown>) => void;
 };
 
 // no global footer lookup in per-block dialog
@@ -64,11 +65,14 @@ const moveItem = <T,>(arr: T[], index: number, direction: 'up' | 'down'): T[] =>
   return newArr;
 };
 
-export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProps) {
+export function FooterSettingsDialog({ block, onSave, onChangeType }: FooterSettingsDialogProps) {
   const existingType: FooterType = block.type as FooterType;
   const existingMinimalProps: FooterMinimalProps | undefined = existingType === 'footerMinimal' ? (block.props as FooterMinimalProps | undefined) : undefined;
   const existingColumnsProps: FooterColumnsProps | undefined = existingType === 'footerColumns' ? (block.props as FooterColumnsProps | undefined) : undefined;
   const existingHalfscreenProps: FooterHalfscreenProps | undefined = existingType === 'footerHalfscreen' ? (block.props as FooterHalfscreenProps | undefined) : undefined;
+
+  // Track current footer variant
+  const [currentType, setCurrentType] = React.useState<FooterType>(existingType);
 
   // Minimal footer state
   const [minLogoText, setMinLogoText] = React.useState<string>(
@@ -103,10 +107,18 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
 
   // Columns footer state
   const [colLogoText, setColLogoText] = React.useState<string>(
-    existingType === 'footerColumns' ? getText(existingColumnsProps?.logoText, 'Your Brand') : 'Your Brand'
+    existingType === 'footerColumns' 
+      ? getText(existingColumnsProps?.logoText, 'Your Brand')
+      : existingType === 'footerMinimal'
+      ? getText(existingMinimalProps?.logoText, 'Your Brand')
+      : 'Your Brand'
   );
   const [colDescription, setColDescription] = React.useState<string>(
-    existingType === 'footerColumns' ? getText(existingColumnsProps?.description, 'Thoughtfully crafted ecommerce.') : 'Thoughtfully crafted ecommerce.'
+    existingType === 'footerColumns' 
+      ? getText(existingColumnsProps?.description, 'Thoughtfully crafted ecommerce.')
+      : existingType === 'footerMinimal'
+      ? getText(existingMinimalProps?.description, 'Thoughtfully crafted ecommerce.')
+      : 'Thoughtfully crafted ecommerce.'
   );
   const [columns, setColumns] = React.useState<Column[]>(
     existingType === 'footerColumns'
@@ -114,18 +126,28 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
           title: getText(c?.title, ''),
           links: getArray<ColumnLink>(c?.links),
         }))
+      : existingType === 'footerMinimal' && existingMinimalProps?.links && getArray<FooterLink>(existingMinimalProps.links).length > 0
+      ? [
+          { title: 'Quick Links', links: getArray<FooterLink>(existingMinimalProps.links) },
+          { title: 'Company', links: [{ label: 'About', href: '#' }, { label: 'Careers', href: '#' }] },
+          { title: 'Resources', links: [{ label: 'Blog', href: '#' }, { label: 'Contact', href: '#' }] },
+        ]
       : [
-    { title: 'Продукт', links: [{ label: 'Возможности', href: '#' }, { label: 'Цены', href: '#' }, { label: 'Интеграции', href: '#' }] },
-    { title: 'Компания', links: [{ label: 'О нас', href: '#' }, { label: 'Карьера', href: '#' }, { label: 'Пресса', href: '#' }] },
-    { title: 'Ресурсы', links: [{ label: 'Блог', href: '#' }, { label: 'Центр поддержки', href: '#' }, { label: 'Контакты', href: '#' }] },
-  ]
+          { title: 'Продукт', links: [{ label: 'Возможности', href: '#' }, { label: 'Цены', href: '#' }, { label: 'Интеграции', href: '#' }] },
+          { title: 'Компания', links: [{ label: 'О нас', href: '#' }, { label: 'Карьера', href: '#' }, { label: 'Пресса', href: '#' }] },
+          { title: 'Ресурсы', links: [{ label: 'Блог', href: '#' }, { label: 'Центр поддержки', href: '#' }, { label: 'Контакты', href: '#' }] },
+        ]
   );
   const [colShowNewsletter, setColShowNewsletter] = React.useState<boolean>(false);
   const [colNewsletterTitle, setColNewsletterTitle] = React.useState<string>('');
   const [colNewsletterPlaceholder, setColNewsletterPlaceholder] = React.useState<string>('');
   const [colNewsletterCtaLabel, setColNewsletterCtaLabel] = React.useState<string>('');
   const [bottomNote, setBottomNote] = React.useState<string>(
-    existingType === 'footerColumns' ? getText(existingColumnsProps?.bottomNote, '© 2025 Your Brand') : '© 2025 Your Brand'
+    existingType === 'footerColumns' 
+      ? getText(existingColumnsProps?.bottomNote, '© 2025 Your Brand')
+      : existingType === 'footerMinimal'
+      ? getText(existingMinimalProps?.copyright, '© 2025 Your Brand')
+      : '© 2025 Your Brand'
   );
 
   // Halfscreen footer state
@@ -174,24 +196,88 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
     // nothing to sync; dialog is per-block
   }, [block.id]);
 
+  // Handle variant change and data migration
+  const handleVariantChange = (newType: FooterType) => {
+    if (newType === currentType) return;
+
+    // Migrate common data between variants
+    if (newType === 'footerMinimal') {
+      if (currentType === 'footerColumns') {
+        // Migrating from columns to minimal: use first column's links as footer links
+        const firstColumn = columns[0];
+        if (firstColumn && firstColumn.links.length > 0) {
+          setMinLinks(firstColumn.links);
+        }
+        setMinLogoText(colLogoText);
+        setMinDescription(colDescription);
+        setMinCopyright(bottomNote);
+      } else if (currentType === 'footerHalfscreen') {
+        // Migrating from halfscreen to minimal: use bottom links
+        if (halfLinks.length > 0) {
+          setMinLinks(halfLinks);
+        }
+        setMinCopyright(halfCopyright);
+      }
+    } else if (newType === 'footerColumns') {
+      if (currentType === 'footerMinimal') {
+        // Migrating from minimal to columns: use footer links as first column
+        setColLogoText(minLogoText);
+        setColDescription(minDescription);
+        setBottomNote(minCopyright);
+        if (minLinks.length > 0) {
+          setColumns([
+            { title: 'Quick Links', links: minLinks },
+            ...columns.slice(1),
+          ]);
+        }
+      } else if (currentType === 'footerHalfscreen') {
+        // Migrating from halfscreen to columns
+        setBottomNote(halfCopyright);
+        if (halfLinks.length > 0) {
+          setColumns([
+            { title: 'Quick Links', links: halfLinks },
+            ...columns.slice(1),
+          ]);
+        }
+      }
+    } else if (newType === 'footerHalfscreen') {
+      if (currentType === 'footerMinimal') {
+        // Migrating from minimal to halfscreen: use footer links as bottom links
+        setHalfLinks(minLinks);
+        setHalfCopyright(minCopyright);
+      } else if (currentType === 'footerColumns') {
+        // Migrating from columns to halfscreen: use first column's links
+        const firstColumn = columns[0];
+        if (firstColumn && firstColumn.links.length > 0) {
+          setHalfLinks(firstColumn.links);
+        }
+        setHalfCopyright(bottomNote);
+      }
+    }
+
+    setCurrentType(newType);
+  };
+
   const handleSave = () => {
-    if (existingType === 'footerMinimal') {
-      onSave({
+    let propsToSave: Record<string, unknown>;
+    
+    if (currentType === 'footerMinimal') {
+      propsToSave = {
         logoText: { text: minLogoText },
         description: { text: minDescription },
         links: minLinks,
         social: minSocial,
         copyright: { text: minCopyright },
-      });
-    } else if (existingType === 'footerColumns') {
-      onSave({
+      };
+    } else if (currentType === 'footerColumns') {
+      propsToSave = {
         logoText: { text: colLogoText },
         description: { text: colDescription },
         columns: columns.map(c => ({ title: { text: c.title }, links: c.links })),
         bottomNote: { text: bottomNote },
-      });
-    } else if (existingType === 'footerHalfscreen') {
-      onSave({
+      };
+    } else if (currentType === 'footerHalfscreen') {
+      propsToSave = {
         badge: { text: halfBadge },
         title: { text: halfTitle },
         description: { text: halfDescription },
@@ -202,8 +288,18 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
         overlayGradient: halfOverlayGradient,
         links: halfLinks,
         copyright: { text: halfCopyright },
-      });
+      };
+    } else {
+      return;
     }
+
+    // If type changed, call onChangeType; otherwise call onSave
+    if (currentType !== existingType && onChangeType) {
+      onChangeType(currentType, propsToSave);
+    } else {
+      onSave(propsToSave);
+    }
+    
     setTimeout(() => {
       const closeButton = document.querySelector('[aria-label="Close dialog"]') as HTMLButtonElement | null;
       closeButton?.click();
@@ -307,8 +403,41 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
           <div className="p-6 space-y-6">
             <MorphingDialogTitle className="text-lg font-semibold">Footer Settings</MorphingDialogTitle>
 
+            {/* Variant Selector */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Footer Variant</label>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant={currentType === 'footerMinimal' ? 'default' : 'outline'}
+                  onClick={() => handleVariantChange('footerMinimal')}
+                >
+                  Minimal
+                </Button>
+                <Button
+                  size="sm"
+                  variant={currentType === 'footerColumns' ? 'default' : 'outline'}
+                  onClick={() => handleVariantChange('footerColumns')}
+                >
+                  Columns
+                </Button>
+                <Button
+                  size="sm"
+                  variant={currentType === 'footerHalfscreen' ? 'default' : 'outline'}
+                  onClick={() => handleVariantChange('footerHalfscreen')}
+                >
+                  Halfscreen
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {currentType === 'footerMinimal' && 'Simple footer with horizontal links'}
+                {currentType === 'footerColumns' && 'Multi-column footer with organized links'}
+                {currentType === 'footerHalfscreen' && 'Creative footer with hero-style layout'}
+              </p>
+            </div>
+
             <div className="space-y-4">
-              {existingType === 'footerMinimal' && (
+              {currentType === 'footerMinimal' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -345,7 +474,7 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
                 </div>
               )}
 
-              {existingType === 'footerColumns' && (
+              {currentType === 'footerColumns' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -385,7 +514,7 @@ export function FooterSettingsDialog({ block, onSave }: FooterSettingsDialogProp
                 </div>
               )}
 
-              {existingType === 'footerHalfscreen' && (
+              {currentType === 'footerHalfscreen' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-3">
                     <div>

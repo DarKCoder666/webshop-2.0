@@ -179,33 +179,6 @@ export default function ProductsList({
             />
           )
         )}
-
-        {(subtitle || isBuilder) && (
-          isBuilder ? (
-            <EditableText
-              key={`pl-subtitle-${blockId}`}
-              blockId={blockId || ""}
-              fieldKey="subtitle"
-              onSave={updateBlockText}
-              isBuilder={isBuilder}
-              as="p"
-              className="mt-3 max-w-2xl text-muted-foreground hidden md:block"
-              placeholder="Enter description..."
-              style={getRichTextStyle(subtitle)}
-            >
-              {getRichTextContent(subtitle)}
-            </EditableText>
-          ) : (
-            <RenderableText
-              content={subtitle}
-              as="p"
-              per="word"
-              preset="fade"
-              delay={0.1}
-              className="mt-3 max-w-2xl text-muted-foreground hidden md:block"
-            />
-          )
-        )}
         </div>
 
         <div className={`${gridCols()} gap-3 sm:gap-4 md:gap-6`}>

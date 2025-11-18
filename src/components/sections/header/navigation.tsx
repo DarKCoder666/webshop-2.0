@@ -17,8 +17,6 @@ import { useProductCategories } from '@/queries/products'
 
 export interface NavigationProps {
     config?: SiteConfig
-    blockId?: string
-    logoPosition?: 'left' | 'middle'
     logoImageSrc?: string
     menuItems?: Array<{ name: string; href: string }>
     showCartIcon?: boolean
@@ -26,10 +24,8 @@ export interface NavigationProps {
 
 export const Navigation = ({ 
     config,
-    blockId: _blockId,
-    logoPosition = 'left',
     logoImageSrc = '/billy.svg',
-    menuItems,
+    menuItems: menuItemsProp,
     showCartIcon = true
 }: NavigationProps) => {
     const [menuState, setMenuState] = React.useState(false)
@@ -38,6 +34,8 @@ export const Navigation = ({
     const desktopCategoriesRef = React.useRef<HTMLLIElement>(null)
     const [mobileCategoriesOpen, setMobileCategoriesOpen] = React.useState(false)
     const [mounted, setMounted] = React.useState(false)
+    const [menuItems, setMenuItems] = React.useState(menuItemsProp || [])
+    
     React.useEffect(() => { setMounted(true) }, [])
     const langForSSR: LanguageCode | undefined = mounted ? undefined : 'ru'
     const tt = useI18n()
@@ -51,6 +49,25 @@ export const Navigation = ({
         }
         window.addEventListener('scroll', handleScroll)
         return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
+    // Update menuItems when prop changes or when navigation is updated
+    React.useEffect(() => {
+        setMenuItems(menuItemsProp || [])
+    }, [menuItemsProp])
+
+    // Listen for navigation updates (mainly for non-builder usage)
+    React.useEffect(() => {
+        const handleNavigationUpdate = (event: Event) => {
+            const customEvent = event as CustomEvent
+            const settings = customEvent.detail
+            if (settings?.menuItems) {
+                setMenuItems(settings.menuItems)
+            }
+        }
+        
+        window.addEventListener('navigationUpdated', handleNavigationUpdate)
+        return () => window.removeEventListener('navigationUpdated', handleNavigationUpdate)
     }, [])
 
     const LogoComponent = () => (
@@ -159,33 +176,15 @@ export const Navigation = ({
 
                         {/* Desktop layout */}
                         <div className="hidden lg:flex lg:w-full lg:items-center lg:justify-between">
-                            {logoPosition === 'left' ? (
-                                <>
-                                    <LogoComponent />
-                                    <div className="flex items-center">
-                                        <MenuItemsComponent />
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <CartIcon />
-                                        <LanguageSwitcher />
-                                        <DarkModeToggle config={config} />
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="flex items-center">
-                                        <MenuItemsComponent />
-                                    </div>
-                                    <div className="absolute inset-0 m-auto size-fit">
-                                        <LogoComponent />
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <CartIcon />
-                                        <LanguageSwitcher />
-                                        <DarkModeToggle config={config} />
-                                    </div>
-                                </>
-                            )}
+                            <LogoComponent />
+                            <div className="flex items-center">
+                                <MenuItemsComponent />
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <CartIcon />
+                                <LanguageSwitcher />
+                                <DarkModeToggle config={config} />
+                            </div>
                         </div>
 
                         {/* Mobile menu */}

@@ -90,7 +90,7 @@ export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
             return
         }
         let mounted = true
-        ;(async () => {
+        const loadNav = async () => {
             try {
                 const layouts = await getAllLayouts()
                 const home = layouts.find((l) => l.pageType === 'home')
@@ -100,9 +100,48 @@ export const HeroHeader = ({ config }: { config?: SiteConfig }) => {
             } catch (e) {
                 console.error('Failed to load navigation settings for header', e)
             }
-        })()
+        }
+        loadNav()
         return () => { mounted = false }
     }, [config])
+
+    // Listen for navigation updates from builder
+    React.useEffect(() => {
+        const handleNavigationUpdate = (event: Event) => {
+            const customEvent = event as CustomEvent
+            const settings = customEvent.detail
+            
+            // If event has settings data, apply it immediately (from builder)
+            if (settings) {
+                setNavLogoImageSrc(settings.logoImageSrc || '/billy.svg')
+                setNavLogoText(settings.logoText || '')
+                setNavShowCartIcon(settings.showCartIcon !== false)
+                setNavMenuItems(settings.menuItems || [])
+            } else {
+                // Fallback: re-fetch from API if no data in event
+                (async () => {
+                    try {
+                        const layouts = await getAllLayouts()
+                        const home = layouts.find((l) => l.pageType === 'home')
+                        if (home) {
+                            const navBlock = home.config.blocks.find((b) => b.type === 'navigation')
+                            const props = (navBlock?.props as any) || {}
+                            setNavLogoImageSrc((props.logoImageSrc as string) || '/billy.svg')
+                            setNavLogoText((props.logoText?.text as string) || '')
+                            setNavShowCartIcon(props.showCartIcon !== false)
+                            const items = (props.menuItems as Array<{ name: string; href: string }>) || []
+                            setNavMenuItems(items)
+                        }
+                    } catch (e) {
+                        console.error('Failed to reload navigation after update', e)
+                    }
+                })()
+            }
+        }
+        
+        window.addEventListener('navigationUpdated', handleNavigationUpdate)
+        return () => window.removeEventListener('navigationUpdated', handleNavigationUpdate)
+    }, [])
     return (
         <header>
             <nav
