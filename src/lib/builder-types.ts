@@ -1,9 +1,20 @@
 export type BlockType = 'heroSection' | 'hero37' | 'hero210' | 'hero85' | 'navigation' | 'testimonials' | 'testimonials2' | 'testimonials3' | 'productsList' | 'productGallery' | 'productDetails' | 'productOverview' | 'footerMinimal' | 'footerColumns' | 'footerHalfscreen' | 'textLongform' | 'textWithImage';
 
+export type ComponentType = 'text' | 'button' | 'image' | 'row';
+
+export type ComponentInstance = {
+  id: string;
+  type: ComponentType;
+  props: Record<string, unknown>;
+  style?: React.CSSProperties;
+  children?: ComponentInstance[];
+};
+
 export type BlockInstance<TProps = Record<string, unknown>> = {
   id: string;
   type: BlockType;
   props: TProps;
+  children?: ComponentInstance[];
 };
 
 export type ThemePreset = 'default' | 'cyberpunk' | 'nature' | 'boldtech' | 'amber' | 'cleanslate' | 'pasteldreams' | 'caffeine' | 'vintagepaper' | 'modernminimal' | 'oceanbreathe' | 'sunsethorizon' | 'quantumrose' | 'solardusk' | 'twitter' | 'violetblum' | 'rose';
@@ -116,5 +127,3 @@ export type RichButton = {
   style?: ButtonStyle;
   href?: string;
 };
-
-

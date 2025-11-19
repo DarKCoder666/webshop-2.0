@@ -3,7 +3,7 @@
 
 import React, { Suspense } from "react";
 import { RenderBlock, getSchema } from "@/components/builder/block-registry";
-import { BlockType, SiteConfig, BlockInstance } from "@/lib/builder-types";
+import { BlockType, SiteConfig, BlockInstance, ComponentInstance } from "@/lib/builder-types";
 import { loadSiteConfig, saveSiteConfig, getAllLayouts, updateLayout } from "@/api/webshop-api";
 import { InsertBlockButton } from "@/components/builder/insert-button";
 import { initializeDebugTools } from "@/lib/api-test-utils";
@@ -211,6 +211,65 @@ function BuilderPageContent() {
     // Only update local state - don't save to database
   };
 
+  const handleComponentUpdate = (blockId: string, componentId: string, updates: Partial<ComponentInstance>) => {
+    if (!config) return;
+    
+    const updatedBlocks = config.blocks.map((b) => {
+      if (b.id !== blockId) return b;
+      
+      const updatedChildren = (b.children || []).map(c => 
+        c.id === componentId ? { ...c, ...updates, props: { ...c.props, ...(updates.props || {}) }, style: { ...c.style, ...(updates.style || {}) } } : c
+      );
+      
+      return { ...b, children: updatedChildren };
+    });
+    
+    setConfig({ ...config, blocks: updatedBlocks });
+  };
+
+  const handleAddComponent = (blockId: string, component: ComponentInstance, index?: number) => {
+    if (!config) return;
+    
+    const updatedBlocks = config.blocks.map((b) => {
+      if (b.id !== blockId) return b;
+      
+      const children = b.children || [];
+      const newChildren = index !== undefined 
+        ? [...children.slice(0, index), component, ...children.slice(index)]
+        : [...children, component];
+        
+      return { ...b, children: newChildren };
+    });
+    
+    setConfig({ ...config, blocks: updatedBlocks });
+  };
+
+  const handleRemoveComponent = (blockId: string, componentId: string) => {
+    if (!config) return;
+    
+    const updatedBlocks = config.blocks.map((b) => {
+      if (b.id !== blockId) return b;
+      
+      const children = b.children || [];
+      const newChildren = children.filter(c => c.id !== componentId);
+        
+      return { ...b, children: newChildren };
+    });
+    
+    setConfig({ ...config, blocks: updatedBlocks });
+  };
+
+  const handleSetBlockChildren = (blockId: string, children: ComponentInstance[]) => {
+    if (!config) return;
+    
+    const updatedBlocks = config.blocks.map((b) => {
+      if (b.id !== blockId) return b;
+      return { ...b, children };
+    });
+    
+    setConfig({ ...config, blocks: updatedBlocks });
+  };
+
   const handlePageSelect = async (layout: WebshopLayout) => {
     if (isLoading || layout._id === currentLayoutId) {
       return; // Don't switch if already on this page or loading
@@ -280,6 +339,10 @@ function BuilderPageContent() {
         blocks={config?.blocks || []} 
         onBlockUpdate={handleTextUpdate}
         onBlockPropsUpdate={handleBlockPropsUpdate}
+        onComponentUpdate={handleComponentUpdate}
+        onAddComponent={handleAddComponent}
+        onRemoveComponent={handleRemoveComponent}
+        onSetBlockChildren={handleSetBlockChildren}
       >
         <div className="min-h-screen bg-background text-foreground">
       {/* Global header is rendered via RootLayout */}
